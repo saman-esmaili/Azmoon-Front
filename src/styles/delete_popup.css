@@ -1,0 +1,199 @@
+@keyframes dcm-slideUp {
+from { opacity: 0; transform: translateY(28px) scale(0.96); }
+to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes dcm-slideDown {
+from { opacity: 1; transform: translateY(0) scale(1); }
+to   { opacity: 0; transform: translateY(28px) scale(0.96); }
+}
+@keyframes dcm-pulse {
+0%, 100% { transform: scale(1); }
+50%       { transform: scale(1.12); }
+}
+@keyframes dcm-shimmer {
+0%   { background-position: -200% center; }
+100% { background-position:  200% center; }
+}
+
+/* ── Overlay ── */
+.dcm-overlay {
+position: fixed;
+inset: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+z-index: 1000;
+font-family: ‘Vazirmatn’, ‘Segoe UI’, sans-serif;
+direction: rtl;
+transition: background 0.35s ease, backdrop-filter 0.35s ease;
+}
+
+.dcm-overlay–visible {
+background: rgba(10, 8, 20, 0.72);
+backdrop-filter: blur(8px);
+}
+
+.dcm-overlay–hidden {
+background: rgba(10, 8, 20, 0);
+backdrop-filter: blur(0px);
+}
+
+/* ── Card ── */
+.dcm-card {
+width: min(440px, calc(100vw - 32px));
+background: linear-gradient(160deg, #1e1b2e 0%, #16131f 100%);
+border: 1px solid rgba(239, 68, 68, 0.15);
+border-radius: 20px;
+padding: 36px 32px 28px;
+box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6),
+0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+position: relative;
+overflow: hidden;
+animation: dcm-slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.dcm-card–out {
+animation: dcm-slideDown 0.28s ease-in forwards;
+}
+
+/* ── Glow ── */
+.dcm-glow {
+position: absolute;
+top: -60px;
+left: 50%;
+transform: translateX(-50%);
+width: 240px;
+height: 120px;
+background: radial-gradient(ellipse, rgba(239, 68, 68, 0.18) 0%, transparent 70%);
+pointer-events: none;
+}
+
+/* ── Icon ── */
+.dcm-icon-wrapper {
+display: flex;
+justify-content: center;
+margin-bottom: 24px;
+}
+
+.dcm-icon-ring {
+width: 68px;
+height: 68px;
+border-radius: 50%;
+background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(185, 28, 28, 0.08));
+border: 1.5px solid rgba(239, 68, 68, 0.3);
+display: flex;
+align-items: center;
+justify-content: center;
+box-shadow: 0 0 32px rgba(239, 68, 68, 0.15);
+animation: dcm-pulse 2.4s ease-in-out infinite;
+}
+
+/* ── Typography ── */
+.dcm-title {
+margin: 0 0 10px;
+font-size: 20px;
+font-weight: 700;
+color: #f1f5f9;
+text-align: center;
+letter-spacing: -0.02em;
+}
+
+.dcm-text {
+margin: 0 0 6px;
+font-size: 14px;
+color: #94a3b8;
+text-align: center;
+line-height: 1.8;
+}
+
+.dcm-classname {
+margin: 0 0 6px;
+font-size: 15px;
+font-weight: 600;
+text-align: center;
+background: linear-gradient(90deg, #ef4444, #fb923c);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+}
+
+.dcm-warning {
+margin: 0 0 28px;
+font-size: 14px;
+color: #94a3b8;
+text-align: center;
+line-height: 1.8;
+}
+
+/* ── Divider ── */
+.dcm-divider {
+height: 1px;
+background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.1), transparent);
+margin-bottom: 24px;
+}
+
+/* ── Actions ── */
+.dcm-actions {
+display: flex;
+gap: 12px;
+justify-content: center;
+}
+
+/* ── Buttons ── */
+.dcm-btn-cancel {
+background: transparent;
+border: 1.5px solid rgba(148, 163, 184, 0.25);
+color: #94a3b8;
+cursor: pointer;
+padding: 12px 28px;
+border-radius: 10px;
+font-size: 14px;
+font-family: inherit;
+font-weight: 500;
+transition: all 0.2s ease;
+letter-spacing: 0.01em;
+}
+
+.dcm-btn-cancel:hover {
+background: rgba(148, 163, 184, 0.08);
+border-color: rgba(148, 163, 184, 0.4);
+color: #cbd5e1;
+}
+
+.dcm-btn-delete {
+background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+border: none;
+color: #fff;
+cursor: pointer;
+padding: 12px 32px;
+border-radius: 10px;
+font-size: 14px;
+font-family: inherit;
+font-weight: 600;
+transition: all 0.2s ease;
+box-shadow: 0 4px 20px rgba(239, 68, 68, 0.35);
+letter-spacing: 0.01em;
+position: relative;
+overflow: hidden;
+}
+
+.dcm-btn-delete::after {
+content: '';
+position: absolute;
+inset: 0;
+background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+background-size: 200% auto;
+}
+
+.dcm-btn-delete:hover {
+transform: translateY(-1px);
+box-shadow: 0 6px 28px rgba(239, 68, 68, 0.5);
+}
+
+.dcm-btn-delete:hover::after {
+animation: dcm-shimmer 1.2s linear infinite;
+}
+
+.dcm-btn-delete:active {
+transform: translateY(0);
+}

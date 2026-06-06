@@ -1,6 +1,7 @@
 import {useState} from "react";
 import {C} from "../../styles/theme";
-import {FaqItem} from './../contact/types'
+import {FaqItem} from './../contact/types';
+import '../../styles/contact_page.css';
 export const MiniFaq: React.FC = () => {
   const [open, setOpen] = useState<number | null>(null);
   const faqs: FaqItem[] = [

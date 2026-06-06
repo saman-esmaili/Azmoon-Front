@@ -1,38 +1,82 @@
-.App {
-  text-align: center;
-}
+:root {
+  /* Brand Colors */
+  --primary: #0D9488;
+  --primary-dk: #0F766E;
+  --primary-lt: #CCFBF1;
+  --accent: #F97316;
+  --accent-dk: #EA6A0A;
+  --accent-lt: #FFF0E4;
+  --sun: #FCD34D;
+  --sun-dk: #F59E0B;
+  --violet: #7C3AED;
+  --violet-lt: #EDE9FE;
+  --rose: #F43F5E;
+  --rose-lt: #FFE4E6;
+  --sky: #0EA5E9;
+  --sky-lt: #E0F2FE;
+  --green: #059669;
+  --green-lt: #D1FAE5;
+  --lime: #84CC16;
+  --lime-lt: #F0FFF4;
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
+  /* Background Colors */
+  --bg: #FFFBF7;
+  --bg-section: #FFF5EE;
+  --bg-white: #FFFFFF;
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
+  /* Text Colors */
+  --text: #1C1917;
+  --text-sub: #57534E;
+  --text-light: #A8A29E;
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
+  /* Borders & Shadows */
+  --border: rgba(13, 148, 136, 0.13);
+  --shadow: rgba(13, 148, 136, 0.14);
 
-.App-link {
-  color: #61dafb;
-}
+  /* Admin-specific Variables */
+  --adm-sidebar-bg: #111827;
+  --adm-sidebar-hover: #1F2937;
+  --adm-sidebar-act: #0D9488;
+  --adm-sidebar-text: rgba(255, 255, 255, 0.6);
+  --adm-sidebar-head: #FFFFFF;
+  --adm-sidebar-w: 256px;
+  --adm-sidebar-wc: 64px;
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  --adm-topbar-h: 60px;
+  --adm-bg: #F1F5F9;
+  --adm-card-bg: #FFFFFF;
+  --adm-border: #E2E8F0;
+  --adm-text: #1E293B;
+  --adm-sub: #64748B;
+  --adm-light: #94A3B8;
+  --adm-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --adm-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+  /* Font */
+  --font: 'Segoe UI', Tahoma, sans-serif;
+
+  /* Transitions */
+  --t: 0.22s ease;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); background: var(--adm-bg);}
+::placeholder { color: #A8A29E !important; }
+/* ── Keyframes ─────────────────────────────────────────────────────────────── */
+@keyframes spin      { to { transform: rotate(360deg); } }
+@keyframes fadeIn    { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideLeft { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes fadeUp  { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes ping    { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.4); } }
+@keyframes slideInUp   { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes checkPop    { 0% { transform: scale(0) rotate(-15deg); opacity: 0; } 70% { transform: scale(1.2) rotate(3deg); } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+@keyframes shimmer     { from { background-position: -600px 0; } to { background-position: 600px 0; } }
+@keyframes progressFill { from { width: 0; } to { width: var(--fill); } }
+@keyframes blobFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-18px) scale(1.04); }
+}
+@keyframes cardFloat {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
 }

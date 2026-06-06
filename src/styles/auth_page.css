@@ -1,9 +1,5 @@
 /* ─── Global Reset ─────────────────────────────────────────────────────────── */
-* { box-sizing: border-box; margin: 0; padding: 0; }
-::placeholder { color: #A8A29E !important; }
-
-/* ─── Keyframes ─────────────────────────────────────────────────────────────── */
-@keyframes spin { to { transform: rotate(360deg); } }
+@import url('./../App.css');
 
 /* ─── Page root ─────────────────────────────────────────────────────────────── */
 .auth-page {
@@ -205,7 +201,7 @@
   font-size: 15px;
   outline: none;
   font-family: inherit;
-  direction: rtl;
+  direction: ltr;
   transition: all 0.2s;
   border-width: 2px;
   border-style: solid;
@@ -387,4 +383,133 @@
   height: 4px;
   border-radius: 4px;
   margin-top: 40px;
+}
+/* ─── Responsive ───────────────────────────────────────────────────────────── */
+
+/* Large tablets & small desktops */
+@media (max-width: 1200px) {
+  .auth-page {
+    flex-direction: column;
+  }
+
+  .panel-left,
+  .panel-right {
+    min-height: auto;
+    padding: 48px 40px;
+  }
+
+  .panel-right {
+    order: -1;
+  }
+
+  .panel-right-body {
+    max-width: 100%;
+  }
+}
+
+/* Tablets */
+@media (max-width: 900px) {
+  .panel-left {
+    padding: 40px 32px;
+  }
+
+  .panel-right {
+    padding: 40px 32px;
+  }
+
+  .panel-right-h2 {
+    font-size: 40px;
+  }
+
+  .panel-right-h3 {
+    font-size: 22px;
+  }
+
+  .otp-row {
+    gap: 8px;
+  }
+
+  .otp-box {
+    width: 50px;
+    height: 56px;
+    font-size: 22px;
+  }
+
+  .step-indicator {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .step-connector {
+    display: none;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .panel-left {
+    padding: 32px 20px;
+  }
+
+  .panel-right {
+    padding: 32px 20px;
+  }
+
+  .auth-logo {
+    margin-bottom: 32px;
+  }
+
+  .phone-step-title,
+  .otp-step-title {
+    font-size: 22px;
+  }
+
+  .phone-step-desc,
+  .otp-step-desc {
+    font-size: 14px;
+  }
+
+  .input-base {
+    font-size: 14px;
+  }
+
+  .otp-box {
+    width: 44px;
+    height: 52px;
+    font-size: 20px;
+    border-radius: 12px;
+  }
+
+  .otp-row {
+    gap: 6px;
+  }
+
+  .btn-primary-auth {
+    font-size: 15px;
+  }
+
+  .panel-right-h2 {
+    font-size: 32px;
+  }
+
+  .panel-right-h3 {
+    font-size: 20px;
+  }
+}
+
+/* Extra small */
+@media (max-width: 400px) {
+  .panel-left {
+    padding: 28px 16px;
+  }
+
+  .otp-box {
+    width: 40px;
+    height: 48px;
+    font-size: 18px;
+  }
+
+  .panel-right-h2 {
+    font-size: 28px;
+  }
 }

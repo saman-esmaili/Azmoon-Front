@@ -1,59 +1,5 @@
 /* ─── admin.css ─────────────────────────────────────────────────────────────── */
-
-/* ── Tokens ────────────────────────────────────────────────────────────────── */
-:root {
-  /* Brand (shared with public site) */
-  --primary:    #0D9488;
-  --primary-dk: #0F766E;
-  --primary-lt: #CCFBF1;
-  --accent:     #F97316;
-  --accent-dk:  #EA6A0A;
-  --accent-lt:  #FFF0E4;
-  --sun:        #FCD34D;
-  --sun-dk:     #F59E0B;
-  --violet:     #7C3AED;
-  --violet-lt:  #EDE9FE;
-  --rose:       #F43F5E;
-  --rose-lt:    #FFE4E6;
-  --sky:        #0EA5E9;
-  --sky-lt:     #E0F2FE;
-  --green:      #059669;
-  --green-lt:   #D1FAE5;
-
-  /* Admin-specific neutrals — dark sidebar, light content */
-  --adm-sidebar-bg:    #111827;
-  --adm-sidebar-hover: #1F2937;
-  --adm-sidebar-act:   #0D9488;
-  --adm-sidebar-text:  rgba(255,255,255,0.6);
-  --adm-sidebar-head:  #FFFFFF;
-  --adm-sidebar-w:     256px;
-  --adm-sidebar-wc:    64px;  /* collapsed */
-
-  --adm-topbar-h: 60px;
-  --adm-bg:       #F1F5F9;
-  --adm-card-bg:  #FFFFFF;
-  --adm-border:   #E2E8F0;
-  --adm-text:     #1E293B;
-  --adm-sub:      #64748B;
-  --adm-light:    #94A3B8;
-  --adm-shadow:   0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
-  --adm-shadow-md: 0 4px 16px rgba(0,0,0,0.1);
-
-  --font: 'Segoe UI', Tahoma, sans-serif;
-
-  /* Transitions */
-  --t: 0.22s ease;
-}
-
-/* ── Reset ─────────────────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body { font-family: var(--font); background: var(--adm-bg); direction: rtl; }
-
-/* ── Keyframes ─────────────────────────────────────────────────────────────── */
-@keyframes spin      { to { transform: rotate(360deg); } }
-@keyframes fadeIn    { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes slideLeft { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+@import url('./../App.css');
 
 /* ════════════════════════════════════════════════════════════════════════════
    LAYOUT
@@ -262,8 +208,9 @@ body { font-family: var(--font); background: var(--adm-bg); direction: rtl; }
 /* ── Top bar ───────────────────────────────────────────────────────────────── */
 .adm-topbar {
   position: fixed;
-  top: 0; left: 0;
-  right: var(--adm-sidebar-w);
+  top: 0;
+  left: 0;
+  right: 0;   /* مهم */
   height: var(--adm-topbar-h);
   background: var(--adm-card-bg);
   border-bottom: 1px solid var(--adm-border);
@@ -271,11 +218,15 @@ body { font-family: var(--font); background: var(--adm-bg); direction: rtl; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 28px 0 48px;
-  z-index: 100;
-  transition: right var(--t);
+  padding: 0 28px;
+  z-index: 150;
+  transition: margin-right 0.3s ease;
+
+  margin-right: var(--adm-sidebar-w); /* به جای right */
 }
-.adm-topbar--collapsed { right: var(--adm-sidebar-wc); }
+.adm-topbar--collapsed {
+  margin-right: var(--adm-sidebar-wc);
+}
 
 .adm-topbar__left { display: flex; align-items: center; gap: 14px; }
 .adm-topbar__page-title { color: var(--adm-text); font-size: 18px; font-weight: 800; }
@@ -1006,4 +957,266 @@ body { font-family: var(--font); background: var(--adm-bg); direction: rtl; }
   .adm-form-row { grid-template-columns: 1fr; }
   .user-drawer { width: 100%; }
   .compose-modal { width: calc(100vw - 32px); left: 16px; }
+}
+/* ─── Responsive Improvements ─────────────────────────────────────────────── */
+
+/* Large tablets */
+@media (max-width: 1200px) {
+  .adm-sidebar {
+    width: var(--adm-sidebar-wc);
+  }
+
+  .adm-topbar {
+    right: var(--adm-sidebar-wc);
+  }
+
+  .adm-content {
+    margin-right: var(--adm-sidebar-wc);
+    padding-right: 24px;
+    padding-left: 32px;
+  }
+
+  .adm-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Tablets */
+@media (max-width: 1024px) {
+  .adm-shell {
+    flex-direction: column;
+  }
+
+  .adm-sidebar {
+    position: fixed;
+    transform: translateX(100%);
+    width: 260px;
+  }
+
+  .adm-sidebar--open {
+    transform: translateX(0);
+  }
+
+  .adm-topbar {
+    right: 0;
+    padding-right: 24px;
+  }
+
+  .adm-content {
+    margin-right: 0;
+    padding: 24px;
+  }
+
+  .adm-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .mail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .mail-sidebar {
+    display: none;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .adm-topbar {
+    height: 64px;
+    padding: 0 16px;
+  }
+
+  .adm-topbar__page-title {
+    font-size: 16px;
+  }
+
+  .adm-content {
+    padding: 16px;
+  }
+
+  .adm-section-title {
+    font-size: 18px;
+  }
+
+  .adm-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .adm-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .user-drawer {
+    width: 100%;
+  }
+
+  .user-drawer__detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .q-modal {
+    max-width: 100%;
+    border-radius: 0;
+    height: 100%;
+  }
+
+  .q-modal__footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mail-detail__toolbar {
+    justify-content: center;
+  }
+}
+
+/* Extra small */
+@media (max-width: 480px) {
+  .adm-topbar {
+    padding: 0 12px;
+  }
+
+  .adm-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .adm-stat-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .adm-stat-card__icon {
+    margin-bottom: 6px;
+  }
+
+  .adm-pagination {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .adm-pagination__btns {
+    justify-content: center;
+  }
+
+  .mail-detail__meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+/* Mobile sidebar (hamburger) */
+@media (max-width: 1024px) {
+  .adm-sidebar {
+    transform: translateX(100%);
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 260px;
+    z-index: 250;
+    transition: transform 0.3s ease;
+  }
+
+  .adm-sidebar--open {
+    transform: translateX(0);
+  }
+
+  .adm-topbar {
+    right: 0;
+  }
+
+  .adm-content {
+    margin-right: 0;
+  }
+
+  .adm-topbar__hamburger {
+    display: flex;
+  }
+}
+@media (max-width: 1024px) {
+  .adm-topbar {
+    margin-right: 0 !important;
+  }
+}
+/* ── Hamburger Button ───────────────────────────────────── */
+
+.adm-topbar__hamburger {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--adm-border);
+  background: var(--adm-bg);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.25s ease;
+}
+
+.adm-topbar__hamburger:hover {
+  border-color: var(--primary);
+  background: var(--primary-lt);
+}
+
+/* سه خط همبرگر */
+.adm-topbar__hamburger::before,
+.adm-topbar__hamburger::after,
+.adm-topbar__hamburger span {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 2px;
+  background: var(--adm-text);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.adm-topbar__hamburger span {
+  transform: translateY(0);
+}
+
+.adm-topbar__hamburger::before {
+  transform: translateY(-6px);
+}
+
+.adm-topbar__hamburger::after {
+  transform: translateY(6px);
+}
+
+/* نمایش فقط موبایل */
+@media (max-width: 1024px) {
+  .adm-topbar__hamburger {
+    display: flex;
+  }
+}
+
+.adm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(2px);
+  z-index: 180;
+  animation: fadeIn 0.25s ease;
+}
+
+@media (max-width: 1024px) {
+  .adm-sidebar {
+    transform: translateX(100%);
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 260px;
+    transition: transform 0.3s ease;
+  }
+
+  .adm-sidebar--open {
+    transform: translateX(0);
+  }
+
+  .adm-content {
+    margin-right: 0;
+  }
 }

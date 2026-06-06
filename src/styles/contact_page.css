@@ -1,10 +1,7 @@
 /* ─── Global Reset ─────────────────────────────────────────────────────────── */
-* { box-sizing: border-box; margin: 0; padding: 0; }
-::placeholder { color: #A8A29E !important; }
-select option { color: #1C1917; background: #fff; }
+@import url('./../App.css');
 
-/* ─── Keyframes ─────────────────────────────────────────────────────────────── */
-@keyframes spin { to { transform: rotate(360deg); } }
+select option { color: #1C1917; background: #fff; }
 
 /* ─── Page root ─────────────────────────────────────────────────────────────── */
 .contact-page {
@@ -12,75 +9,6 @@ select option { color: #1C1917; background: #fff; }
   min-height: 100vh;
   direction: rtl;
 }
-
-/* ─── Nav ───────────────────────────────────────────────────────────────────── */
-.contact-nav {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 100;
-  background: rgba(255,251,247,0.94);
-  backdrop-filter: blur(18px);
-  border-bottom-width: 1px;
-  border-bottom-style: solid;
-  padding: 0 40px;
-  direction: rtl;
-}
-.contact-nav-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 68px;
-}
-.nav-logo-link {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-}
-.nav-logo-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 11px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.nav-logo-icon span {
-  color: #fff;
-  font-size: 19px;
-  font-weight: 900;
-}
-.nav-logo-name {
-  font-size: 19px;
-  font-weight: 900;
-}
-.nav-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-.nav-home-link {
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 600;
-  transition: color 0.2s;
-}
-.nav-home-link:hover { /* color set dynamically */ }
-.nav-panel-link {
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 800;
-  padding: 9px 20px;
-  border-radius: 10px;
-  color: #fff;
-  transition: all 0.2s;
-}
-.nav-panel-link:hover {
-  transform: translateY(-1px);
-}
-
 /* ─── Hero ──────────────────────────────────────────────────────────────────── */
 .contact-hero {
   padding-top: 120px;
@@ -180,7 +108,7 @@ select option { color: #1C1917; background: #fff; }
 }
 
 /* ─── Shared input style ─────────────────────────────────────────────────────── */
-.input-base {
+.input-base-contact {
   width: 100%;
   padding: 13px 18px;
   background: #FFF5EE;
@@ -529,3 +457,117 @@ select option { color: #1C1917; background: #fff; }
   font-weight: 700;
 }
 .map-area-sub { font-size: 13px; }
+/* ─── Responsive ───────────────────────────────────────────────────────────── */
+
+/* Large tablets & small desktops */
+@media (max-width: 1200px) {
+  .contact-methods-section,
+  .contact-main-section,
+  .map-section {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .contact-methods-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .contact-main-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .sidebar-card {
+    flex: 1 1 260px;
+  }
+}
+
+/* Tablets */
+@media (max-width: 900px) {
+  .contact-hero-h1 {
+    font-size: 34px;
+  }
+
+  .contact-hero-desc {
+    font-size: 16px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-methods-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    flex-direction: column;
+  }
+
+  .map-header {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .contact-hero {
+    padding-top: 100px;
+    padding-bottom: 48px;
+  }
+
+  .contact-hero-h1 {
+    font-size: 28px;
+  }
+
+  .contact-hero-desc {
+    font-size: 15px;
+  }
+
+  .contact-methods-section,
+  .contact-main-section,
+  .map-section {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .contact-form-wrap,
+  .form-success-wrap,
+  .sidebar-card,
+  .map-card {
+    padding: 24px 18px;
+  }
+
+  .contact-card {
+    padding: 22px 18px;
+  }
+
+  .contact-methods-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-submit {
+    font-size: 15px;
+  }
+}
+
+/* Extra small */
+@media (max-width: 400px) {
+  .contact-hero-h1 {
+    font-size: 24px;
+  }
+
+  .contact-form-title {
+    font-size: 20px;
+  }
+
+  .btn-submit {
+    padding: 12px;
+  }
+}

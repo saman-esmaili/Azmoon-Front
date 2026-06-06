@@ -1,5 +1,6 @@
 import {C} from "../../styles/theme";
-
+import {ContactMethod} from '../contact/types';
+import '../../styles/contact_page.css';
 export const ContactCard: React.FC<ContactMethod> = ({ icon, label, value, sub, color, bg }) => (
   <div
     className="contact-card"
