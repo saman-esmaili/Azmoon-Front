@@ -26,15 +26,15 @@ const StudentPanel:React.FC=()=>{
 
   const renderContent=():ReactNode=>{
     if(section==="dashboard")return<Dashboard/>;
-    if(section==="exams")    return<ExamsSection onStartExam={handleStartExam}/>;
+    if(section==="exams")    return<ExamsSection/>;
     if(section==="messages") return<MessagesSection/>;
     if(section==="profile")  return<ProfileSection/>;
     return null;
   };
 
-  if(activeExam){
-    return<ExamEnv exam={activeExam} onExit={handleExitExam}/>;
-  }
+  // if(activeExam){
+  //   return<ExamEnv exam={activeExam} onExit={handleExitExam}/>;
+  // }
 
   return(
     <div className="std-shell" dir="rtl">
@@ -100,7 +100,7 @@ const StudentPanel:React.FC=()=>{
       </main>
 
       {/* Post-exam score modal */}
-      {scoreModal&&<ScoreModalComp exam={scoreModal} answers={examAnswers} onClose={()=>setScoreModal(null)}/>}
+      {/*{scoreModal&&<ScoreModalComp exam={scoreModal} answers={examAnswers} onClose={()=>setScoreModal(null)}/>}*/}
     </div>
   );
 };

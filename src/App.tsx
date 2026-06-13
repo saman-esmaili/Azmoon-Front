@@ -11,6 +11,8 @@ import './App.css'
 import TeacherPanel from "./routers/teacher";
 import QuestionSelector from "./components/teacher/question-selector";
 import StudentPanel from "./routers/student";
+import {ExamEnv} from "./components/student/azmoon-env";
+import ExamGrading from "./components/teacher/exam-grading";
 
 function App() {
     return (
@@ -22,6 +24,8 @@ function App() {
                     {/*<Route path="/auth/:classUrl" element={<AuthPage/>}/>*/}
                     <Route path="/auth" element={<AuthPage/>}/>
                     <Route path="/about" element={<AboutPage/>}/>
+                    <Route path="/exam/grading/:examId" element={<ExamGrading/>}/>
+                    <Route path="/exam/env/:exam_id" element={<ExamEnv/>}/>
                     <Route path="/contact" element={<ContactPage/>}/>
                     <Route path="/cart" element={<Cart/>}/>
                     <Route path="/plan" element={<PlanDetailPage/>}/>

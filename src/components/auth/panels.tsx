@@ -19,7 +19,7 @@ export const PanelLeft: React.FC = () => {
     const [searchParams] = useSearchParams();
 
     const admin = searchParams.get('Admin');
-    const classUrl = searchParams.get('class-url');
+    const classUrl = searchParams.get('class_url');
 
     useEffect(() => {
         if (countdown <= 0) return;
@@ -40,13 +40,8 @@ export const PanelLeft: React.FC = () => {
     const handlePhoneSubmit = () => {
         if (!validatePhone()) return;
         const data = {'mobile': phone.replace(/\s+/g, ''), 'type': role}
-        let url = ''
-        if (admin) {
-            url = `http://localhost:8000/send-otp/${admin}`
-        } else {
-            url = 'http://localhost:8000/send-otp'
-        }
-        Axios.post(`http://localhost:8000/send-otp?Admin=${admin}`, data)
+
+        Axios.post(`http://localhost:8000/send-otp?Admin=${admin}&class_url=${classUrl}`, data)
             .then((res) => {
 
             })

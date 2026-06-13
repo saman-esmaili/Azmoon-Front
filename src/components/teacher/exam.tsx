@@ -43,7 +43,7 @@ interface ExamLst {
 export const ExamsSection: React.FC = () => {
     const [modal, setModal] = useState(false);
     const [classes, setClasses] = useState<classInfo[]>([]);
-    const [examStat,setExamStat] = useState('')
+    const [examStat, setExamStat] = useState('')
     const [err, setErr] = useState('');
     const [editModal, setEditModal] = useState(false);
     const [examId, setExamId] = useState(-1)
@@ -457,14 +457,18 @@ export const ExamsSection: React.FC = () => {
                             </div>}
                         </div>
                         <div className="tch-modal__footer">
-
-                            <button className="tch-btn tch-btn--accent" disabled={examStat !== 'پیش رو'} onClick={() =>  navigate(`/question-selector/${examId}`)}>انتخاب سوالات
+                            {/*disabled={examStat !== 'پیش رو'} */}
+                            {(editModal && examStat === 'برگزار شد') && <button className="tch-btn tch-btn--accent"
+                                                                                onClick={() => navigate(`/exam/grading/${examId}`)}>تصحیح
+                                آزمون
+                            </button>}
+                            {(editModal && examStat !== 'برگزار شد') && <><button className="tch-btn tch-btn--accent"
+                                    onClick={() => navigate(`/question-selector/${examId}`)}>انتخاب سوالات
                                 ←
-                            </button>
-                            {editModal ?
-                                <button className="tch-btn tch-btn--primary" onClick={() => editExam()}>✓ ویرایش
-                                    آزمون</button>
-                                :
+                            </button>                        <button className="tch-btn tch-btn--primary" onClick={() => editExam()}>✓ ویرایش
+                                    آزمون</button></>}
+
+                            {!editModal &&
                                 <button className="tch-btn tch-btn--primary" onClick={() => addExam()}>✓ ذخیره
                                     آزمون</button>
                             }

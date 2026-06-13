@@ -1,139 +1,249 @@
-import {useState} from "react";
-import {diffBadge, Question, QUESTIONS} from "./types";
+import {useEffect, useState} from "react";
+import {diffBadge} from "./types";
 import '../../styles/admin.css';
+import {diffLabel} from "../teacher/types";
+import Axios from "axios";
+import {CheckAuth, revoke} from "../../check_auth";
+import {useNavigate} from "react-router-dom";
+type diffType = 'easy' | 'medium' | 'hard';
+interface QuestionData {
+    id: number;
+    text: string;
+    score: number;
+    cat: string;
+    diff: diffType;
+    type: string;
+    true_answer: string;
+    A: null | string;
+    B: null | string;
+    C: null | string;
+    D: null | string;
+    question_image: null | string;
+    A_image: null | string;
+    B_image: null | string;
+    C_image: null | string;
+    D_image: null | string;
+    essay_image: null | string;
+}
+
+interface QuestionHeaderData {
+    test: 0;
+    essay: 0;
+    true_false: 0
+}
+
 export const QuestionsSection: React.FC = () => {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editQ, setEditQ] = useState<Question | null>(null);
-  const [search, setSearch] = useState("");
+    const [search, setSearch] = useState("");
+    const [QUESTIONS, setQuestion] = useState<QuestionData[]>([])
+    const filtered = QUESTIONS.filter((q) => q.text.includes(search) || q.cat.includes(search));
+    const navigate = useNavigate();
+    const get_questions = () => {
+        Axios.get('http://localhost:8000/admin/questions', {withCredentials: true})
+            .then((res) => {
+                setQuestion(res.data.result);
+            })
+            .catch(async (err) => {
+                if (err.response.status === 401) {
+                    const is_successful = await CheckAuth();
+                    if (is_successful) {
+                        return get_questions();
+                    }
+                }
+                // revoke()
+                // navigate('/auth');
+            })
+    }
+    useEffect(() => {
+        get_questions()
+    }, []);
+    const LETTERS = ["A", "B", "C", "D"];
 
-  const filtered = QUESTIONS.filter((q) => q.text.includes(search) || q.category.includes(search));
-
-  const openEditor = (q: Question | null) => { setEditQ(q); setModalOpen(true); };
-
-  const LETTERS = ["الف", "ب", "پ", "ت"];
-
-  return (
-    <>
-      <div className="adm-stats">
-        {[
-          { icon:"❓", label:"کل سوالات",    value:`${QUESTIONS.length}`, change:"+۳ این هفته", up:true, bg:"var(--violet-lt)", color:"var(--violet)" },
-          { icon:"📚", label:"تستی",          value:"۳",  change:"۶۰٪ از کل",   up:true, bg:"var(--sky-lt)",    color:"var(--sky)" },
-          { icon:"✍️",label:"تشریحی/کوتاه", value:"۲",  change:"۴۰٪ از کل",  up:true, bg:"var(--accent-lt)", color:"var(--accent)" },
-          { icon:"🎯", label:"استفاده‌شده",  value:"۸۱", change:"در آزمون‌ها",  up:true, bg:"var(--green-lt)",  color:"var(--green)" },
-        ].map((s) => (
-          <div key={s.label} className="adm-stat-card">
-            <div className="adm-stat-card__icon" style={{ background: s.bg }}>{s.icon}</div>
-            <div>
-              <div className="adm-stat-card__label">{s.label}</div>
-              <div className="adm-stat-card__value">{s.value}</div>
-              <div className="adm-stat-card__change adm-stat-card__change--up">{s.change}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="adm-section-header">
-        <div className="adm-section-header__left">
-          <div className="adm-section-title">بانک سوالات</div>
-          <div className="adm-section-sub">{filtered.length} سوال</div>
-        </div>
-        <div className="adm-section-header__right">
-          <input className="adm-input" style={{ width: 220 }} placeholder="🔍 جستجو در سوالات..." value={search} onChange={(e) => setSearch(e.target.value)} />
-          <button className="adm-btn adm-btn--primary" onClick={() => openEditor(null)}>+ سوال جدید</button>
-        </div>
-      </div>
-
-      {filtered.map((q) => {
-        const diff = diffBadge(q.difficulty);
-        return (
-          <div key={q.id} className="question-card" onClick={() => openEditor(q)}>
-            <div className="question-card__top">
-              <div className="question-card__text">{q.text}</div>
-              <div className="question-card__meta">
-                <span className={`adm-badge ${diff.cls}`}>{diff.label}</span>
-                <span className="adm-badge adm-badge--sky">{q.category}</span>
-                <span className="adm-badge adm-badge--gray">استفاده: {q.usedIn}</span>
-              </div>
-            </div>
-            {q.type === "multiple" && (
-              <div className="question-card__options">
-                {q.options.map((opt, i) => (
-                  <div key={i} className={`question-card__option ${i === q.correct ? "question-card__option--correct" : ""}`}>
-                    <span className="question-card__option-letter">{LETTERS[i]}</span>
-                    {opt}
-                  </div>
-                ))}
-              </div>
-            )}
-            {q.type === "truefalse" && (
-              <div className="question-card__options">
-                {q.options.map((opt, i) => (
-                  <div key={i} className={`question-card__option ${i === q.correct ? "question-card__option--correct" : ""}`}>
-                    <span className="question-card__option-letter">{i === 0 ? "✓" : "×"}</span>
-                    {opt}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      })}
-
-      {/* Question editor modal */}
-      {modalOpen && (
-        <div className="q-modal-backdrop" onClick={() => setModalOpen(false)}>
-          <div className="q-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="q-modal__header">
-              <span className="q-modal__title">{editQ ? "ویرایش سوال" : "سوال جدید"}</span>
-              <button className="user-drawer__close" onClick={() => setModalOpen(false)}>×</button>
-            </div>
-            <div className="q-modal__body">
-              <div className="adm-form-full">
-                <label className="adm-form-label">متن سوال *</label>
-                <textarea className="adm-textarea" rows={3} defaultValue={editQ?.text} placeholder="متن سوال را وارد کنید..." />
-              </div>
-              <div className="adm-form-row">
-                <div>
-                  <label className="adm-form-label">نوع سوال</label>
-                  <select className="adm-select" style={{ width: "100%" }} defaultValue={editQ?.type}>
-                    <option value="multiple">چهار گزینه‌ای</option>
-                    <option value="truefalse">درست / نادرست</option>
-                    <option value="short">کوتاه‌پاسخ</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="adm-form-label">سطح دشواری</label>
-                  <select className="adm-select" style={{ width: "100%" }} defaultValue={editQ?.difficulty}>
-                    <option value="easy">آسان</option>
-                    <option value="medium">متوسط</option>
-                    <option value="hard">سخت</option>
-                  </select>
-                </div>
-              </div>
-              <div className="adm-form-full">
-                <label className="adm-form-label">دسته‌بندی</label>
-                <input className="adm-input" defaultValue={editQ?.category} placeholder="مثلاً: ریاضی، علوم، فناوری..." />
-              </div>
-              {(!editQ || editQ.type === "multiple") && (
-                <div>
-                  <label className="adm-form-label">گزینه‌ها (گزینه صحیح را مشخص کنید)</label>
-                  {["الف", "ب", "پ", "ت"].map((l, i) => (
-                    <div key={l} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                      <input type="radio" name="correct" defaultChecked={editQ?.correct === i} />
-                      <span style={{ color: "var(--adm-sub)", fontSize: 12, fontWeight: 700, minWidth: 20 }}>{l}</span>
-                      <input className="adm-input" defaultValue={editQ?.options[i]} placeholder={`گزینه ${l}...`} />
+    return (
+        <>
+            <div className="adm-stats">
+                {[
+                    {
+                        icon: "❓",
+                        label: "کل سوالات",
+                        value: `${QUESTIONS.length}`,
+                        change: "+۳ این هفته",
+                        up: true,
+                        bg: "var(--violet-lt)",
+                        color: "var(--violet)"
+                    },
+                    {
+                        icon: "📚",
+                        label: "تستی",
+                        value: `${QUESTIONS.filter(q => q.type === "test").length}`,
+                        change: `${QUESTIONS.filter(q => q.type === "test").length / QUESTIONS.length * 100}٪ از کل`,
+                        up: true,
+                        bg: "var(--sky-lt)",
+                        color: "var(--sky)"
+                    },
+                    {
+                        icon: "✍️",
+                        label: "تشریحی/کوتاه",
+                        value: `${QUESTIONS.filter(q => q.type === "test").length}`,
+                        change: `${QUESTIONS.filter(q => q.type === "test").length / QUESTIONS.length * 100}٪ از کل`,
+                        up: true,
+                        bg: "var(--accent-lt)",
+                        color: "var(--accent)"
+                    },
+                    {
+                        icon: "🎯",
+                        label: "صحیح/غلط",
+                        value: `${QUESTIONS.filter(q => q.type === "true_false").length}`,
+                        change: `${QUESTIONS.filter(q => q.type === "true_false").length / QUESTIONS.length * 100}٪ از کل`,
+                        up: true,
+                        bg: "var(--green-lt)",
+                        color: "var(--green)"
+                    },
+                ].map((s) => (
+                    <div key={s.label} className="adm-stat-card">
+                        <div className="adm-stat-card__icon" style={{background: s.bg}}>{s.icon}</div>
+                        <div>
+                            <div className="adm-stat-card__label">{s.label}</div>
+                            <div className="adm-stat-card__value">{s.value}</div>
+                            <div className="adm-stat-card__change adm-stat-card__change--up">{s.change}</div>
+                        </div>
                     </div>
-                  ))}
+                ))}
+            </div>
+
+            <div className="adm-section-header">
+                <div className="adm-section-header__left">
+                    <div className="adm-section-title">بانک سوالات</div>
+                    <div className="adm-section-sub">{filtered.length} سوال</div>
                 </div>
-              )}
+                <div className="adm-section-header__right">
+                    <input className="adm-input" style={{width: 220}} placeholder="🔍 جستجو در سوالات..." value={search}
+                           onChange={(e) => setSearch(e.target.value)}/>
+                </div>
             </div>
-            <div className="q-modal__footer">
-              <button className="adm-btn adm-btn--ghost" onClick={() => setModalOpen(false)}>انصراف</button>
-              <button className="adm-btn adm-btn--primary" onClick={() => setModalOpen(false)}>💾 ذخیره</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
+
+            {filtered.map(q => (
+                <div key={q.id} className="q-card">
+                    <div className="q-card__top">
+                        {q.text && <div className="q-card__text">{q.text}</div>}
+                        <div className="question-image-wrapper">
+                            {q?.question_image && (
+                                <img
+                                    src={`http://localhost:8000/Questions/${q.question_image}`}
+                                    alt="question"
+                                    className="question-image"
+                                />
+                            )}
+                        </div>
+                        <div className="q-card__meta">
+                            <span className={`tch-badge ${diffBadge(q.diff)}`}>{diffLabel(q.diff)}</span>
+                            <span className="tch-badge tch-badge--sky">{q.cat}</span>
+                            <span className="tch-badge tch-badge--gray">× {q.score}</span>
+                        </div>
+                    </div>
+                    {q.type === "test" && (
+                        <div className="q-card__opts">
+                            {[
+                                {text: q.A, image: q.A_image},
+                                {text: q.B, image: q.B_image},
+                                {text: q.C, image: q.C_image},
+                                {text: q.D, image: q.D_image},
+                            ].map((opt, i) => {
+                                if (!opt.text && !opt.image) return null;
+
+                                const letter = LETTERS[i];
+
+                                return (
+                                    <div
+                                        key={i}
+                                        className={`q-card__opt ${
+                                            letter === q.true_answer
+                                                ? "q-card__opt--ok"
+                                                : ""
+                                        }`}
+                                    >
+                    <span className="q-card__opt-ltr">
+                        {letter}
+                    </span>
+
+                                        {opt.text && <span>{opt.text}</span>}
+
+                                        {opt.image && (
+                                            <img
+                                                src={`http://localhost:8000/Questions/${opt.image}`}
+                                                alt={letter}
+                                                className='opt-image'
+                                            />
+                                        )}
+
+                                        {letter === q.true_answer && (
+                                            <span
+                                                style={{
+                                                    marginRight: 8,
+                                                    color: "green",
+                                                    fontWeight: "bold"
+                                                }}
+                                            />
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                    {q.type === "true_false" && (
+                        <div className="q-card__opts">
+                            {[
+                                {value: "true", label: "✓ صحیح"},
+                                {value: "false", label: "✗ غلط"}
+                            ].map((item, i) => (
+                                <div
+                                    key={i}
+                                    className={`q-card__opt ${
+                                        q.true_answer === item.value
+                                            ? "q-card__opt--ok"
+                                            : ""
+                                    }`}
+                                >
+                                    {item.label}
+
+                                    {q.true_answer === item.value && (
+                                        <span
+                                            style={{
+                                                marginRight: 8,
+                                                color: "green",
+                                                fontWeight: "bold"
+                                            }}
+                                        >
+                    </span>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {q.type === "essay" && (
+                        <div className="q-card__opts">
+                            {/*{q.true_answer && <div className="q-card__essay-answer">*/}
+                            {/*    <textarea className='tch-textarea' rows={6} readOnly={true}>{q.true_answer}</textarea>*/}
+                            {/*</div>}*/}
+                            {q.true_answer && (
+                                <div className="q-card__opt q-card__opt--ok">
+                                    <strong style={{marginLeft: "8px"}}>
+                                        پاسخ:
+                                    </strong>
+
+                                    <span>{q.true_answer}</span>
+                                </div>
+                            )}
+                            {q.essay_image && (
+                                <img
+                                    src={`http://localhost:8000/Questions/${q.essay_image}`}
+                                    alt="Essay Answer"
+                                    className='essay-image'
+                                />
+                            )}
+                        </div>
+                    )}
+                </div>
+            ))}
+        </>
+    );
 };

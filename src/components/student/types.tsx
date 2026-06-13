@@ -63,7 +63,7 @@ export const MAILS = [
   {id:"m3",from:"من",fromEmail:"student@azmon.ir",subject:"سوال درباره آزمون فیزیک",preview:"استاد عزیز، درباره فصل موج...",body:"استاد عزیز،\n\nدرباره مباحث فصل موج سوالاتی داشتم. آیا امکان تنظیم وقت دارید؟\n\nبا تشکر",date:"۱۴۰۳/۰۴/۰۱",unread:false,folder:"sent" as MailFolder},
 ];
 
-export const LETTERS = ["الف","ب","پ","ت"];
+export const LETTERS = ["A","B","C","D"];
 
 /* ─── Helpers ────────────────────────────────────────────────────────── */
 export const scoreColor = (s:number,t:number)=>{
