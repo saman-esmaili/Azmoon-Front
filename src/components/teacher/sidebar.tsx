@@ -4,11 +4,11 @@ export const SECTION_TITLES: Record<Section, string> = {
   questions:    "بانک سوالات",
   exams:        "آزمون‌ها",
   students:     "دانش‌آموزان",
-  "buy-plan":   "خرید پلن",
   "my-plan":    "پلن من",
   transactions: "تراکنش‌ها",
   profile:      "پروفایل من",
   messages:     "ایمیل‌ها",
+  // comments: "نظرات",
 };
 
 export interface NavItem { id: Section; label: string; icon: string; badge?: number }
@@ -22,8 +22,9 @@ export const NAV_MAIN: NavItem[] = [
 ];
 
 export const NAV_ACCOUNT: NavItem[] = [
-  { id:"buy-plan",    label:"خرید پلن",         icon:"🛒" },
+  // { id:"buy-plan",    label:"خرید پلن",         icon:"🛒" },
   { id:"my-plan",     label:"مشخصات پلن",        icon:"💎" },
+  // { id:"comments",     label:"نظرات",        icon:"✉️" },
   { id:"transactions",label:"تراکنش‌ها",         icon:"💳" },
   { id:"profile",     label:"تکمیل مشخصات",     icon:"👤" },
 ];

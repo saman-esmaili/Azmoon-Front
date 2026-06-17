@@ -5,13 +5,16 @@ import {ClassesSection} from "../components/teacher/class";
 import QuestionsSection from "../components/teacher/question";
 import {ExamsSection} from "../components/teacher/exam";
 import {StudentsSection} from "../components/teacher/student";
-import {BuyPlanSection} from "../components/teacher/buy-plan";
 import {MyPlanSection} from "../components/teacher/my-plan";
 import {TransactionsSection} from "../components/teacher/transaction";
 import {ProfileSection} from "../components/teacher/profile";
 import {MessagesSection} from "../components/teacher/message";
+import {LogOut} from "lucide-react";
 import {NAV_ACCOUNT, NAV_MAIN, SECTION_TITLES} from "../components/teacher/sidebar";
+import {revoke} from "../check_auth";
 import {useNavigate} from "react-router-dom";
+import Axios from "axios";
+import {PlanComments} from "./commentPlan";
 
 const TeacherPanel: React.FC = () => {
     const [active, setActive] = useState<Section>("classes");
@@ -20,14 +23,32 @@ const TeacherPanel: React.FC = () => {
     useEffect(() => {
         setMobileOpen(false);
     }, [active]);
+    const navigate = useNavigate()
+    const handleLogout = async () => {
+        await revoke();
+        navigate('/');
+    }
+    const [isStudent, setIsStudent] = useState(false);
+    const get_types = () => {
+        Axios.get('http://localhost:8000/types', {withCredentials: true})
+            .then((res) => {
+                setIsStudent(res.data.student)
+            })
+    }
+    useEffect(() => {
+        get_types()
+    }, []);
 
-
+    const student_panel = () =>{
+        navigate('/student')
+    }
     const renderContent = (): ReactNode => {
         if (active === "classes") return <ClassesSection/>;
         if (active === "questions") return <QuestionsSection/>;
         if (active === "exams") return <ExamsSection/>;
         if (active === "students") return <StudentsSection/>;
-        if (active === "buy-plan") return <BuyPlanSection/>;
+        // if (active === "comments") return <PlanComments/>;
+        // if (active === "buy-plan") return <BuyPlanSection/>;
         if (active === "my-plan") return <MyPlanSection/>;
         if (active === "transactions") return <TransactionsSection/>;
         if (active === "profile") return <ProfileSection/>;
@@ -105,16 +126,14 @@ const TeacherPanel: React.FC = () => {
 
                 <div className="tch-sidebar__footer">
                     <div className="tch-sidebar__user">
-                        <div className="tch-sidebar__user-avatar">👨‍🏫</div>
-                        {!collapsed && (
-                            <div>
-                                <div className="tch-sidebar__user-name">
-                                    دکتر محمد رضایی
-                                </div>
-                                <div className="tch-sidebar__user-role">
-                                    استاد ریاضی
-                                </div>
-                            </div>
+                        <button className="tch-sidebar__btn">
+                            پنل استاد
+                        </button>
+
+                        {isStudent && (
+                            <button className="tch-sidebar__btn" onClick={()=>{student_panel()}}>
+                                پنل دانش‌آموز
+                            </button>
                         )}
                     </div>
 
@@ -158,18 +177,18 @@ const TeacherPanel: React.FC = () => {
                     {/*    <span style={{color: "var(--adm-light)"}}>🔍</span>*/}
                     {/*    <input placeholder="جستجوی سریع..."/>*/}
                     {/*</div>*/}
+                    {/*<button*/}
+                    {/*    className="tch-icon-btn"*/}
+                    {/*    onClick={() => setActive("messages")}*/}
+                    {/*>*/}
+                    {/*    ✉️*/}
+                    {/*    <span className="tch-icon-btn__dot"/>*/}
+                    {/*</button>*/}
                     <button
                         className="tch-icon-btn"
-                        onClick={() => setActive("messages")}
+                        onClick={() => handleLogout}
                     >
-                        ✉️
-                        <span className="tch-icon-btn__dot"/>
-                    </button>
-                    <button
-                        className="tch-icon-btn"
-                        onClick={() => setActive("profile")}
-                    >
-                        👤
+                        <LogOut size={20}/>
                     </button>
                 </div>
             </header>

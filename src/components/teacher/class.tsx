@@ -37,6 +37,10 @@ export const ClassesSection: React.FC = () => {
         next_exam_name: ''
     });
     const [className, setClassName] = useState('');
+    const [page, setPage] = useState(1);
+    const [pages, setPages] = useState(1);
+    const [searchText, setSearchText] = useState("");
+    const [search, setSearch] = useState("");
     const [lessonName, setLessonName] = useState('');
     const [grade, setGrade] = useState('');
     const [description, setDescription] = useState<string | null>(null);
@@ -45,13 +49,16 @@ export const ClassesSection: React.FC = () => {
     const [DeleteClassId, setDeleteClassId] = useState(-1);
     const [EditClassId, setEditClassId] = useState(-1);
     const [DeleteClassName, setDeleteClassName] = useState('');
-
+    const [toastErr, setToastErr] = useState('');
+    const [toast, setToast] = useState(false);
     // API
-    const addClassSession = ()=>{
+    const addClassSession = () => {
         setModal(true)
         setClassName('')
         setLessonName('')
         setDescription(null)
+        setToast(false)
+        setToastErr('')
     }
 
     const checkField = (class_name: string, lesson_name: string, grade: string, description: string | null) => {
@@ -79,22 +86,22 @@ export const ClassesSection: React.FC = () => {
                 return false
             }
         }
-        if (description === ''){
+        if (description === '') {
             setDescription(null)
         }
         return true
     }
 
+
     const addClass = async (): Promise<void> => {
         const field_fill = checkField(className, lessonName, grade, description);
         const data = {'name': className, 'lesson': lessonName, 'grade': grade, 'description': description}
-
         if (field_fill) {
             Axios.post('http://localhost:8000/teacher/add/class', data, {withCredentials: true})
                 .then((res) => {
                     setModal(false)
                     setAddError('')
-                    getClass()
+                    getClass(page)
                 })
                 .catch(async (err) => {
                     if (err.response.status === 401) {
@@ -102,6 +109,13 @@ export const ClassesSection: React.FC = () => {
                         if (is_successful) {
                             return addClass();
                         }
+                    } else if (err.response.status === 402) {
+                        setToastErr('برای ایجاد کلاس به یک پلن فعال نیاز دارید!')
+                        setToast(true)
+                        return
+                    } else if (err.response.status === 409) {
+                        setAddError('نام کلاس تکراری است!')
+                        return
                     } else {
                         setAddError('مشکلی در افزودن کلاس پیش آمده! لطفا دوباره تلاش کنید!')
                         return
@@ -114,21 +128,21 @@ export const ClassesSection: React.FC = () => {
 
     const navigate = useNavigate()
 
-    const getClass = async (): Promise<void> => {
+    const getClass = async (pageNumber = 1): Promise<void> => {
         try {
             const res = await Axios.get(
-                'http://localhost:8000/teacher/class',
+                `http://localhost:8000/teacher/class?page=${pageNumber}&size=6&search=${search}`,
                 {withCredentials: true}
             );
             setCLASSES(res.data.class);
-            setClassInfo(res.data.all_info)
+            setPages(res.data.pages);
         } catch (err: unknown) {
             if (Axios.isAxiosError(err)) {
                 const status = err.response?.status;
                 if (status === 401) {
                     const is_successful = await CheckAuth();
                     if (is_successful) {
-                        return getClass();
+                        return getClass(page);
                     }
                 }
             }
@@ -136,15 +150,47 @@ export const ClassesSection: React.FC = () => {
             navigate('/auth');
         }
     };
+    const getInfoClass = async (): Promise<void> => {
+        try {
+            const res = await Axios.get(
+                `http://localhost:8000/teacher/class/header`,
+                {withCredentials: true}
+            );
+            setClassInfo(res.data.all_info)
 
+        } catch (err: unknown) {
+            if (Axios.isAxiosError(err)) {
+                const status = err.response?.status;
+                if (status === 401) {
+                    const is_successful = await CheckAuth();
+                    if (is_successful) {
+                        return getInfoClass();
+                    }
+                }
+            }
+            revoke()
+            navigate('/auth');
+        }
+    };
     useEffect(() => {
-        getClass()
+        const timer = setTimeout(() => {
+            setSearch(searchText);
+            setPage(1);
+        }, 800);
+
+        return () => clearTimeout(timer);
+    }, [searchText]);
+    useEffect(() => {
+        getClass(page)
+    }, [page, search]);
+    useEffect(() => {
+        getInfoClass()
     }, []);
 
     const delete_class = (class_id: number) => {
         Axios.delete(`http://localhost:8000/teacher/delete/class/${class_id}`, {withCredentials: true})
             .then((res) => {
-                getClass()
+                getClass(page)
             })
             .catch(async (err) => {
                 if (err.response.status === 401) {
@@ -158,11 +204,11 @@ export const ClassesSection: React.FC = () => {
             })
     }
 
-    const editClass = (class_id:number)=> {
+    const editClass = (class_id: number) => {
         const field_fill = checkField(className, lessonName, grade, description);
         const data = {'name': className, 'lesson': lessonName, 'grade': grade, 'description': description}
 
-         if (field_fill) {
+        if (field_fill) {
             Axios.put(`http://localhost:8000/teacher/edit/class/${class_id}`, data, {withCredentials: true})
                 .then((res) => {
                     setModal(false)
@@ -172,7 +218,7 @@ export const ClassesSection: React.FC = () => {
                     setGrade('')
                     setDescription('')
                     setAddError('')
-                    getClass()
+                    getClass(page)
                 })
                 .catch(async (err) => {
                     if (err.response.status === 401) {
@@ -180,6 +226,9 @@ export const ClassesSection: React.FC = () => {
                         if (is_successful) {
                             return editClass(class_id);
                         }
+                    } else if (err.response.status === 409) {
+                        setAddError('نام کلاس تکراری است!')
+                        return
                     }
                     revoke()
                     navigate('/auth');
@@ -195,7 +244,17 @@ export const ClassesSection: React.FC = () => {
                     <div className="tch-sec-title">کلاس‌های من</div>
                     <div className="tch-sec-sub">{ClassInfo.class_count} کلاس فعال</div>
                 </div>
-                <button className="tch-btn tch-btn--primary" onClick={() => addClassSession()}>+ ایجاد کلاس جدید</button>
+                <div className="tch-sec-header__right">
+                    <input
+                        className="tch-input"
+                        style={{width: 200}}
+                        placeholder="🔍 جستجو..."
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                    />
+                    <button className="tch-btn tch-btn--primary" onClick={() => addClassSession()}>+ ایجاد کلاس جدید
+                    </button>
+                </div>
             </div>
 
             <div className="tch-stats">
@@ -227,8 +286,8 @@ export const ClassesSection: React.FC = () => {
                     {
                         icon: "📅",
                         label: "آزمون آینده",
-                        value: `${ClassInfo.next_exam_date}`,
-                        note: `${ClassInfo.next_exam_name}`,
+                        value: `${ClassInfo.next_exam_date || '؟'}`,
+                        note: `${ClassInfo.next_exam_name || '-'}`,
                         bg: "var(--accent-lt)",
                         color: "var(--accent)"
                     },
@@ -250,7 +309,6 @@ export const ClassesSection: React.FC = () => {
 
                         <div className="class-card__stripe" style={{background: 'green'}}/>
                         <div className="class-card__head">
-                            {/*<div className="class-card__icon" style={{background: 'bluesky'}}>لینک کلاس</div>*/}
                             <span className="tch-badge tch-badge--gray">{c.grade}</span>
                             <ThreeDotsMenu
                                 items={[
@@ -290,17 +348,18 @@ export const ClassesSection: React.FC = () => {
                         {/*• آزمون بعدی: {c.nextExam}*/}
                         <div className="class-card__footer">
                             <span className="class-card__stu">👥 {c.student_count} دانش‌آموز</span>
-                            <div style={{display: "flex", gap: 6}}>
-                                <button className="tch-btn tch-btn--ghost tch-btn--sm">مشاهده</button>
-                                <button className="tch-btn tch-btn--primary tch-btn--sm">آزمون</button>
-                            </div>
+                            {/*<div style={{display: "flex", gap: 6}}>*/}
+                            {/*    <button className="tch-btn tch-btn--ghost tch-btn--sm">مشاهده</button>*/}
+                            {/*    <button className="tch-btn tch-btn--primary tch-btn--sm">آزمون</button>*/}
+                            {/*</div>*/}
                         </div>
                     </div>
                 ))}
-                {Array.isArray(CLASSES) && CLASSES.length === 0 && <div className="class-card--new" onClick={() => addClassSession()}>
-                    <div className="class-card--new__icon">➕</div>
-                    <div className="class-card--new__label">کلاس جدید</div>
-                </div>}
+                {Array.isArray(CLASSES) && CLASSES.length === 0 &&
+                    <div className="class-card--new" onClick={() => addClassSession()}>
+                        <div className="class-card--new__icon">➕</div>
+                        <div className="class-card--new__label">کلاس جدید</div>
+                    </div>}
             </div>
             <DeleteModal
                 isOpen={open}
@@ -318,7 +377,7 @@ export const ClassesSection: React.FC = () => {
                 <div className="tch-modal-backdrop" onClick={() => setModal(false)}>
                     <div className="tch-modal" onClick={e => e.stopPropagation()}>
                         <div className="tch-modal__header">
-                            <span className="tch-modal__title">🏫 {editModal ? "ویرایش":"ایجاد" } کلاس جدید</span>
+                            <span className="tch-modal__title">🏫 {editModal ? "ویرایش" : "ایجاد"} کلاس جدید</span>
                             <button className="tch-modal__close" onClick={() => setModal(false)}>×</button>
                         </div>
                         <div className="tch-modal__body">
@@ -373,12 +432,41 @@ export const ClassesSection: React.FC = () => {
                         </div>}
                         <div className="tch-modal__footer">
                             <button className="tch-btn tch-btn--ghost" onClick={() => setModal(false)}>انصراف</button>
-                            {editModal ? <button className="tch-btn tch-btn--primary" onClick={() => editClass(EditClassId)}>✓ ویرایش کلاس</button> : <button className="tch-btn tch-btn--primary" onClick={() => addClass()}>✓ ایجاد کلاس</button>}
+                            {editModal ?
+                                <button className="tch-btn tch-btn--primary" onClick={() => editClass(EditClassId)}>✓
+                                    ویرایش کلاس</button> :
+                                <button className="tch-btn tch-btn--primary" onClick={() => addClass()}>✓ ایجاد
+                                    کلاس</button>}
 
                         </div>
                     </div>
                 </div>
             )}
+            {CLASSES.length > 6 && (<div className="tch-pagination">
+                <div className="tch-pagination__btns">
+                    <button
+                        disabled={page === 1}
+                        onClick={() => setPage(p => p - 1)}
+                        className={'tch-page-btn'}
+                    >
+                        «
+                    </button>
+
+                    <span className={'tch-pagination__info'}>
+        صفحه {page} از {pages}
+    </span>
+
+                    <button
+                        disabled={page === pages}
+                        className={'tch-page-btn'}
+                        onClick={() => setPage(p => p + 1)}
+                    >
+                        »
+                    </button>
+                </div>
+            </div>)}
+
+            {toast && <div className="error-landing-toast">{toastErr}</div>}
         </>
     );
 };

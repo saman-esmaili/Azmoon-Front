@@ -45,7 +45,11 @@ export const ExamsSection: React.FC = () => {
     const [classes, setClasses] = useState<classInfo[]>([]);
     const [examStat, setExamStat] = useState('')
     const [err, setErr] = useState('');
+    const [page, setPage] = useState(1);
+    const [pages, setPages] = useState(1);
     const [editModal, setEditModal] = useState(false);
+    const [searchText, setSearchText] = useState("");
+    const [search, setSearch] = useState("");
     const [examId, setExamId] = useState(-1)
     const [examItem, setExamItem] = useState<ExamInputs>({
         name: '',
@@ -142,6 +146,8 @@ export const ExamsSection: React.FC = () => {
         })
         setExamId(-1)
     }
+    const [toast, setToast] = useState(false);
+    const [toastError, setTError] = useState('')
     const addExam = async () => {
         setErr('')
         const is_field_filled = await control_fields()
@@ -160,6 +166,18 @@ export const ExamsSection: React.FC = () => {
                     const is_successful = await CheckAuth();
                     if (is_successful) {
                         return addExam();
+                    } else if (err.response.status === 402) {
+                        setTError('برای ایجاد آزمون به یک پلن فعال نیاز دارید!')
+                        setToast(true)
+                        setTimeout(() => {
+                            setToast(false)
+                        }, 3000)
+                    } else if (err.response.status === 406) {
+                        setTError('به سقف ایجاد آزمون رسیده اید!')
+                        setToast(true)
+                        setTimeout(() => {
+                            setToast(false)
+                        }, 3000)
                     }
                 }
                 // revoke()
@@ -168,9 +186,10 @@ export const ExamsSection: React.FC = () => {
     }
 
     const examsList = () => {
-        Axios.get('http://localhost:8000/teacher/exam', {withCredentials: true})
+        Axios.get(`http://localhost:8000/teacher/exam?page=${page}&size=6&search=${search}`, {withCredentials: true})
             .then((res) => {
                 setExams(res.data.exams);
+                setPages(res.data.pages)
                 console.log(res.data.exams)
             })
             .catch(async (err) => {
@@ -178,6 +197,30 @@ export const ExamsSection: React.FC = () => {
                     const is_successful = await CheckAuth();
                     if (is_successful) {
                         return examsList();
+                    }
+                }
+                revoke()
+                navigate('/auth');
+            })
+    }
+    const [header, setHeader] = useState({
+        'درحال برگزاری': 0,
+        'پیش رو': 0,
+        'برگزار شد': 0,
+        'all': 0
+    })
+    const [meanUsed, setMeanUsed] = useState(0);
+    const examsHeader = () => {
+        Axios.get(`http://localhost:8000/teacher/exam/header`, {withCredentials: true})
+            .then((res) => {
+                setHeader(res.data.status);
+                setMeanUsed(res.data.mean_used);
+            })
+            .catch(async (err) => {
+                if (err.response.status === 401) {
+                    const is_successful = await CheckAuth();
+                    if (is_successful) {
+                        return examsHeader();
                     }
                 }
                 revoke()
@@ -194,7 +237,6 @@ export const ExamsSection: React.FC = () => {
         setExamId(e.exam_id)
 
         setExamStat(e.exam_status)
-        console.log(examStat)
         setExamItem({
             name: e.exam_name,
             class_id: e.class_id,
@@ -249,10 +291,12 @@ export const ExamsSection: React.FC = () => {
             })
 
     }
-
     useEffect(() => {
         examsList();
-    }, []);
+    }, [page,search]);
+    useEffect(() => {
+        examsHeader();
+    }, [page]);
     // END API
 
     return (
@@ -262,7 +306,11 @@ export const ExamsSection: React.FC = () => {
                     <div className="tch-sec-title">آزمون‌ها</div>
                     <div className="tch-sec-sub">{exams.length} آزمون</div>
                 </div>
-                <button className="tch-btn tch-btn--primary" onClick={() => openModal()}>+ ایجاد آزمون</button>
+                <div className="tch-sec-header__right">
+                    <input className="tch-input" style={{width: 200}} placeholder="🔍 جستجو..." value={search}
+                           onChange={e => setSearch(e.target.value)}/>
+                    <button className="tch-btn tch-btn--primary" onClick={() => openModal()}>+ ایجاد آزمون</button>
+                </div>
             </div>
 
             <div className="tch-stats">
@@ -270,28 +318,28 @@ export const ExamsSection: React.FC = () => {
                     {
                         icon: "📝",
                         label: "کل آزمون‌ها",
-                        value: `${exams.length}`,
+                        value: `${header.all}`,
                         bg: "var(--primary-lt)",
                         color: "var(--primary)"
                     },
                     {
                         icon: "⏳",
                         label: "پیش رو",
-                        value: `${exams.filter(e => e.exam_status === "پیش رو").length}`,
+                        value: `${header["پیش رو"] || 0}`,
                         bg: "var(--sky-lt)",
                         color: "var(--sky)"
                     },
                     {
                         icon: "✅",
                         label: "برگزار شده",
-                        value: `${exams.filter(e => e.exam_status === "برگزار شد").length}`,
+                        value: `${header["برگزار شد"] || 0}`,
                         bg: "var(--green-lt)",
                         color: "var(--green)"
                     },
                     {
                         icon: "📊",
                         label: "میانگین سوال",
-                        value: `${Math.round(exams.reduce((s, e) => s + e.question_selected, 0) / exams.length)}`,
+                        value: `${meanUsed}`,
                         bg: "var(--violet-lt)",
                         color: "var(--violet)"
                     },
@@ -456,17 +504,22 @@ export const ExamsSection: React.FC = () => {
                                 }}>{err}</p>
                             </div>}
                         </div>
+                        {}
                         <div className="tch-modal__footer">
                             {/*disabled={examStat !== 'پیش رو'} */}
                             {(editModal && examStat === 'برگزار شد') && <button className="tch-btn tch-btn--accent"
                                                                                 onClick={() => navigate(`/exam/grading/${examId}`)}>تصحیح
                                 آزمون
                             </button>}
-                            {(editModal && examStat !== 'برگزار شد') && <><button className="tch-btn tch-btn--accent"
-                                    onClick={() => navigate(`/question-selector/${examId}`)}>انتخاب سوالات
-                                ←
-                            </button>                        <button className="tch-btn tch-btn--primary" onClick={() => editExam()}>✓ ویرایش
-                                    آزمون</button></>}
+                            {(editModal && examStat === 'پیش رو') && <>
+                                <button className="tch-btn tch-btn--accent"
+                                        onClick={() => navigate(`/question-selector/${examId}`)}>انتخاب سوالات
+                                    ←
+                                </button>
+                                <button className="tch-btn tch-btn--primary" onClick={() => editExam()}>✓ ویرایش
+                                    آزمون
+                                </button>
+                            </>}
 
                             {!editModal &&
                                 <button className="tch-btn tch-btn--primary" onClick={() => addExam()}>✓ ذخیره
@@ -479,8 +532,33 @@ export const ExamsSection: React.FC = () => {
 
                         </div>
                     </div>
+                    {toast && <div className="error-landing-toast">{toastError}</div>}
                 </div>
             )}
+            {exams.length > 6 && (<div className="tch-pagination">
+                {/*<span className="tch-pagination__info">نمایش {page} تا {pages}</span>*/}
+                <div className="tch-pagination__btns">
+                    <button
+                        disabled={page === 1}
+                        onClick={() => setPage(p => p - 1)}
+                        className={'tch-page-btn'}
+                    >
+                        «
+                    </button>
+
+                    <span className={'tch-pagination__info'}>
+        صفحه {page} از {pages}
+    </span>
+
+                    <button
+                        disabled={page === pages}
+                        className={'tch-page-btn'}
+                        onClick={() => setPage(p => p + 1)}
+                    >
+                        »
+                    </button>
+                </div>
+            </div>)}
         </>
     );
 };

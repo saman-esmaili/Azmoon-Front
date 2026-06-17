@@ -27,14 +27,16 @@ interface QuestionData {
 }
 
 interface QuestionHeaderData {
-    length: number;
+    all: 0;
     use_count: 0;
+    test_count:0,
+    true_false_count:0
+    essay_count:0
 }
 
 const QuestionsSection: React.FC = () => {
     const [modal, setModal] = useState(false);
     // const [editQ, setEditQ] = useState<typeof QUESTIONS[0] | null>(null);
-    const [search, setSearch] = useState("");
     const LETTERS = ["A", "B", "C", "D"];
     const [questionType, setQuestionType] = useState('test')
     const [difficulty, setDifficulty] = useState('easy')
@@ -44,8 +46,14 @@ const QuestionsSection: React.FC = () => {
     const [QUESTIONS, setQuestions] = useState<QuestionData[]>([])
     const [edit, setEdit] = useState(false)
     const [QuestionID, setQuestionID] = useState(-1)
+    const [toastErr, setToastErr] = useState('');
+    const [toast, setToast] = useState(false);
+    const [searchText, setSearchText] = useState("");
+    const [search, setSearch] = useState("");
     const [openDelete, setOpenDelete] = useState(false)
     const [questionHeader, setQuestionHeader] = useState<QuestionHeaderData>()
+    const [page, setPage] = useState(1);
+    const [pages, setPages] = useState(1);
     const [options, setOptions] = useState<{
         A: string | null;
         B: string | null;
@@ -119,7 +127,7 @@ const QuestionsSection: React.FC = () => {
         setEdit(true);
         setModal(true);
     };
-    const filtered = QUESTIONS.filter(q => q.text.includes(search) || q.cat.includes(search));
+
 
     // API
 
@@ -342,6 +350,10 @@ const QuestionsSection: React.FC = () => {
                     }
                 } else if (status === 400) {
                     setError('خطایی در ثبت سوال پیش آمده!')
+                } else if (err.response.status === 402 || err.response.status === 406) {
+                    setToastErr('برای ایجاد سوال به یک پلن فعال نیاز دارید!')
+                    setToast(true)
+                    return
                 }
                 revoke()
                 navigate('/auth')
@@ -349,10 +361,11 @@ const QuestionsSection: React.FC = () => {
 
     };
     const getQuestions = () => {
-        Axios.get('http://localhost:8000/teacher/question', {withCredentials: true})
+        Axios.get(`http://localhost:8000/teacher/question?page=${page}&size=5&search=${search}`, {withCredentials: true})
             .then((res) => {
-                setQuestions(res.data.questions)
-                setQuestionHeader(res.data.questions_info)
+                setQuestions(res.data.questions);
+                setQuestionHeader(res.data.questions_info);
+                setPages(res.data.pages);
             })
             .catch(async (err) => {
                 if (err.response.status === 401) {
@@ -363,6 +376,22 @@ const QuestionsSection: React.FC = () => {
                 }
                 revoke()
                 navigate('/auth');
+            })
+    }
+    const getQuestionsHeader = () => {
+        Axios.get('http://localhost:8000/teacher/question/header', {withCredentials: true})
+            .then((res) => {
+                setQuestionHeader(res.data.questions_info);
+            })
+            .catch(async (err) => {
+                if (err.response.status === 401) {
+                    const is_successful = await CheckAuth();
+                    if (is_successful) {
+                        return getQuestionsHeader();
+                    }
+                }
+                // revoke()
+                // navigate('/auth');
             })
     }
     const clearInput = () => {
@@ -485,15 +514,30 @@ const QuestionsSection: React.FC = () => {
                     setEdit(false);
                     setModal(false);
                     getQuestions()
+                } else if (err.response.status === 402 || err.response.status === 406) {
+                    setToastErr('برای افزودن تصویر به یک پلن فعال نیاز دارید!')
+                    setToast(true)
+                    return
                 }
                 revoke()
                 navigate('/auth');
             })
     }
+     useEffect(() => {
+        const timer = setTimeout(() => {
+            setSearch(searchText);
+            setPage(1);
+        }, 800);
+
+        return () => clearTimeout(timer);
+    }, [searchText]);
 
     useEffect(() => {
         getQuestions()
-    }, [])
+    }, [page,search])
+    useEffect(() => {
+        getQuestionsHeader()
+    }, [page])
     //  END API
 
     return (
@@ -515,21 +559,21 @@ const QuestionsSection: React.FC = () => {
                     {
                         icon: "❓",
                         label: "کل سوالات",
-                        value: `${questionHeader?.length}`,
+                        value: `${questionHeader?.all}`,
                         bg: "var(--violet-lt)",
                         color: "var(--violet)"
                     },
                     {
                         icon: "📋",
                         label: "تستی",
-                        value: `${QUESTIONS.filter(q => q.type === "test").length}`,
+                        value: `${questionHeader?.test_count}`,
                         bg: "var(--sky-lt)",
                         color: "var(--sky)"
                     },
                     {
                         icon: "✅",
                         label: "درست/نادرست",
-                        value: `${QUESTIONS.filter(q => q.type === "true_false").length}`,
+                        value: `${questionHeader?.true_false_count}`,
                         bg: "var(--green-lt)",
                         color: "var(--green)"
                     },
@@ -551,7 +595,7 @@ const QuestionsSection: React.FC = () => {
                 ))}
             </div>
 
-            {filtered.map(q => (
+            {QUESTIONS.map(q => (
                 <div key={q.id} className="q-card" onClick={() => openEdit(q)}>
                     <div className="q-card__top">
                         {q.text && <div className="q-card__text">{q.text}</div>}
@@ -1028,6 +1072,30 @@ const QuestionsSection: React.FC = () => {
                     />
                 </div>
             )}
+            <div className="tch-pagination">
+                <div className="tch-pagination__btns">
+                    <button
+                        disabled={page === 1}
+                        onClick={() => setPage(p => p - 1)}
+                        className={'tch-page-btn'}
+                    >
+                        «
+                    </button>
+
+                    <span className={'tch-pagination__info'}>
+        صفحه {page} از {pages}
+    </span>
+
+                    <button
+                        disabled={page === pages}
+                        className={'tch-page-btn'}
+                        onClick={() => setPage(p => p + 1)}
+                    >
+                        »
+                    </button>
+                </div>
+            </div>
+            {toast && <div className="error-landing-toast">{toastErr}</div>}
         </>
     );
 };

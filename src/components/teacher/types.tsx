@@ -1,4 +1,4 @@
-export type Section = "classes" | "questions" | "exams" | "students" | "buy-plan" | "my-plan" | "transactions" | "profile" | "messages";
+export type Section = "classes" | "questions" | "exams" | "students" | "my-plan" | "transactions" | "profile" | "messages";
 export type MailFolder = "inbox" | "sent" | "drafts" | "trash";
 export type ProfileTab = "personal" | "contact" | "security";
 

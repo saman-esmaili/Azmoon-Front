@@ -1,4 +1,4 @@
-import {useState, useMemo, useCallback, useEffect} from "react";
+import {useState, useMemo, useCallback, useEffect, useRef} from "react";
 import "./../../styles/question-selector.css";
 import {useNavigate, useParams} from "react-router-dom";
 import Axios from "axios";
@@ -50,7 +50,7 @@ const TYPE_META: Record<QType, { label: string; cls: string }> = {
     essay: {label: "کوتاه‌پاسخ", cls: "qs-badge--gray"},
 };
 
-const PER_PAGE = 4;
+const PER_PAGE = 10;
 
 /* ─── Exam meta (props in real usage) ───────────────────────────────────── */
 
@@ -84,11 +84,18 @@ const QuestionSelector: React.FC<QuestionSelectorProps> = ({
     const [search, setSearch] = useState("");
     const [diffFilter, setDiff] = useState<Diff[]>([]);
     const [typeFilter, setType] = useState<QType[]>([]);
+    const [pages, setPages] = useState(1);
+    const [page, setPage] = useState(1);
+    const [sortBy, setSortBy] = useState<"default" | "diff" | "selected">("default");
+    const [gridView, setGridView] = useState(false);
     const [catFilter, setCat] = useState<string[]>([]);
     const [openCats, setOpenCats] = useState<string[]>([]);
     const {examId} = useParams();
     const [QUESTIONS, setQUESTIONS] = useState<Question[]>([]);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [total, setTotal] = useState(0);
+    const [categories, setCategories] = useState<Record<string, number>>({});
+    const [selectedMap, setSelectedMap] = useState<Record<string, Question>>({});
     const [exam, setExam] = useState<ExamMeta>({
         name: '',
         class: '',
@@ -96,47 +103,61 @@ const QuestionSelector: React.FC<QuestionSelectorProps> = ({
         score: 0,
     })
     const navigate = useNavigate();
+    const PAGE_SIZE = 20;
     // API
-    const getQuestionExam = () => {
-        Axios.get(`http://localhost:8000/teacher/exam/question/${examId}`, {withCredentials: true})
+    const getQuestionExam = (initial = false) => {
+        Axios.get(`http://localhost:8000/teacher/exam/question/${examId}`, {
+            params: {
+                page,
+                size: PER_PAGE,
+                search,
+                difficulty: diffFilter.join(','),
+                type: typeFilter.join(','),
+                category: catFilter.join(','),
+            },
+            withCredentials: true
+        })
             .then((res) => {
-                resetFilters()
-                const questions = res.data.questions;
-                const q_ids = questions
-                    .filter((q: Question) => q.selected)
-                    .map((q: Question) => q.id);
-                setTimeout(() => {
-                    setQUESTIONS([...questions]);
-                    setExam(res.data.exam_info);
-                    setSelected([...q_ids]);
-                }, 0);
+                setQUESTIONS(res.data.questions);
+                setExam(res.data.exam_info);
+                setTotal(res.data.total);
+                setCategories(res.data.categories);
 
+                if (initial) {
+                    const selMap: Record<string, Question> = {};
+                    const selIds: string[] = [];
+                    res.data.selected_questions.forEach((q: Question) => {
+                        selMap[q.id] = q;
+                        selIds.push(q.id);
+                    });
+                    setSelectedMap(selMap);
+                    setSelected(selIds);
+                }
             })
             .catch(async (err) => {
                 if (err.response.status === 401) {
                     const is_successful = await CheckAuth();
-                    if (is_successful) {
-                        return getQuestionExam();
-                    }
+                    if (is_successful) return getQuestionExam(initial);
                 }
-                // revoke()
-                // navigate('/auth');
-            })
-    }
+            });
+    };
+
     useEffect(() => {
-        getQuestionExam()
+        getQuestionExam(true);
     }, []);
+
+    const skipFirstRef = useRef(true);
     useEffect(() => {
-        console.log("QUESTIONS updated", QUESTIONS);
-    }, [QUESTIONS]);
+        if (skipFirstRef.current) {
+            skipFirstRef.current = false;
+            return;
+        }
+        getQuestionExam(false);
+    }, [page, search, diffFilter, typeFilter, catFilter]);
     // END API
 
-
-    /* list state */
-    const [sortBy, setSortBy] = useState<"default" | "diff" | "selected">("default");
-    const [gridView, setGridView] = useState(false);
-    const [page, setPage] = useState(1);
-
+    const paginated = QUESTIONS;
+    const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
     /* selection state */
     const [selected, setSelected] = useState<string[]>([]);
     const [bump, setBump] = useState(false);
@@ -146,19 +167,20 @@ const QuestionSelector: React.FC<QuestionSelectorProps> = ({
     const catTree = useMemo(() => buildCatTree(QUESTIONS), [QUESTIONS]);
 
     /* ── filter + sort ─────────────────────────────────────────────────── */
-    const filtered = useMemo(() => {
-        let qs = QUESTIONS;
-        if (search.trim()) qs = qs.filter(q => q.text.includes(search) || q.cat.includes(search));
-        if (diffFilter.length) qs = qs.filter(q => diffFilter.includes(q.diff));
-        if (typeFilter.length) qs = qs.filter(q => typeFilter.includes(q.type));
-        if (catFilter.length) qs = qs.filter(q => catFilter.includes(q.cat));
-        if (sortBy === "diff") qs = [...qs].sort((a, b) => ["easy", "medium", "hard"].indexOf(a.diff) - ["easy", "medium", "hard"].indexOf(b.diff));
-        // if (sortBy === "selected") qs = [...qs].sort((a, b) => b.selected - a.selected);
-        return qs;
-    }, [QUESTIONS, search, diffFilter, typeFilter, catFilter, sortBy]);
+    // const filtered = useMemo(() => {
+    //     let qs = QUESTIONS;
+    //     if (search.trim()) qs = qs.filter(q => q.text.includes(search) || q.cat.includes(search));
+    //     if (diffFilter.length) qs = qs.filter(q => diffFilter.includes(q.diff));
+    //     if (typeFilter.length) qs = qs.filter(q => typeFilter.includes(q.type));
+    //     if (catFilter.length) qs = qs.filter(q => catFilter.includes(q.cat));
+    //     if (sortBy === "diff") qs = [...qs].sort((a, b) => ["easy", "medium", "hard"].indexOf(a.diff) - ["easy", "medium", "hard"].indexOf(b.diff));
+    //     // if (sortBy === "selected") qs = [...qs].sort((a, b) => b.selected - a.selected);
+    //     return qs;
+    // }, [QUESTIONS, search, diffFilter, typeFilter, catFilter, sortBy]);
 
-    const totalPages = Math.ceil(filtered.length / PER_PAGE);
-    const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+    // const totalPages = Math.ceil(filtered.length / PER_PAGE);
+    // const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
 
     /* ── helpers ───────────────────────────────────────────────────────── */
     const toggleDiff = (d: Diff) => setDiff(p => p.includes(d) ? p.filter(x => x !== d) : [...p, d]);
@@ -166,21 +188,42 @@ const QuestionSelector: React.FC<QuestionSelectorProps> = ({
     const toggleCat = (c: string) => setCat(p => p.includes(c) ? p.filter(x => x !== c) : [...p, c]);
     const toggleCatOpen = (c: string) => setOpenCats(p => p.includes(c) ? p.filter(x => x !== c) : [...p, c]);
     const toggleQ = useCallback((id: string) => {
+        const q = QUESTIONS.find(q => q.id === id);
         setSelected(prev => {
             const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
             setBump(true);
             setTimeout(() => setBump(false), 400);
             return next;
         });
-    }, []);
+        setSelectedMap(prev => {
+            const next = {...prev};
+            if (prev[id]) delete next[id];
+            else if (q) next[id] = q;
+            return next;
+        });
+    }, [QUESTIONS]);
 
     const toggleAll = () => {
-        const pageIds = paginated.map(q => q.id);
+        const pageIds = QUESTIONS.map(q => q.id);
         const allSel = pageIds.every(id => selected.includes(id));
-        if (allSel) setSelected(p => p.filter(id => !pageIds.includes(id)));
-        else setSelected(p => [...new Set([...p, ...pageIds])]);
+        if (allSel) {
+            setSelected(p => p.filter(id => !pageIds.includes(id)));
+            setSelectedMap(p => {
+                const next = {...p};
+                pageIds.forEach(id => delete next[id]);
+                return next;
+            });
+        } else {
+            setSelected(p => [...new Set([...p, ...pageIds])]);
+            setSelectedMap(p => {
+                const next = {...p};
+                QUESTIONS.forEach(q => {
+                    next[q.id] = q;
+                });
+                return next;
+            });
+        }
     };
-
     const moveUp = (id: string) => setSelected(p => {
         const i = p.indexOf(id);
         if (i <= 0) return p;
@@ -203,7 +246,8 @@ const QuestionSelector: React.FC<QuestionSelectorProps> = ({
         setType([]);
         setCat([]);
     };
-
+    const [toast, setToast] = useState(false);
+    const [Err, setError] = useState('')
     const handleDone = () => {
         const data = {'question_id': selected}
         Axios.post(`http://localhost:8000/teacher/exam/question/add/${examId}`, data, {withCredentials: true})
@@ -220,6 +264,13 @@ const QuestionSelector: React.FC<QuestionSelectorProps> = ({
                     if (is_successful) {
                         return getQuestionExam();
                     }
+                } else if (err.response.status === 406) {
+                    setToast(true);
+                    setError('تعداد سوالات از سقف مجاز پلن شما بیشتر است!')
+                    setTimeout(() => {
+                        setToast(false);
+                        setError('')
+                    }, 3000)
                 }
                 // revoke()
                 // navigate('/auth');
@@ -231,10 +282,8 @@ const QuestionSelector: React.FC<QuestionSelectorProps> = ({
             onDone(selected);
         }, 1000);
     };
-    const selectedScore = selected.reduce((sum, id) => {
-        const q = QUESTIONS.find(q => q.id === id);
-        return sum + (q?.score || 0);
-    }, 0);
+    const selectedScore = selected.reduce((sum, id) => sum + (selectedMap[id]?.score || 0), 0);
+
     /* derived */
     const pct = exam.score > 0
         ? Math.min(100, Math.round((selectedScore / exam.score) * 100))
@@ -244,16 +293,16 @@ const QuestionSelector: React.FC<QuestionSelectorProps> = ({
     const exact = selectedScore === exam.score;
 
     const dist = {
-        easy: selected.filter(id => QUESTIONS.find(q => q.id === id)?.diff === "easy").length,
-        medium: selected.filter(id => QUESTIONS.find(q => q.id === id)?.diff === "medium").length,
-        hard: selected.filter(id => QUESTIONS.find(q => q.id === id)?.diff === "hard").length,
+        easy: selected.filter(id => selectedMap[id]?.diff === "easy").length,
+        medium: selected.filter(id => selectedMap[id]?.diff === "medium").length,
+        hard: selected.filter(id => selectedMap[id]?.diff === "hard").length,
     };
+
 
     const pageIds = paginated.map(q => q.id);
     const allOnPage = pageIds.length > 0 && pageIds.every(id => selected.includes(id));
 
-    const selectedQs = selected.map(id => QUESTIONS.find(q => q.id === id)).filter(Boolean) as Question[];
-
+    const selectedQs = selected.map(id => selectedMap[id]).filter(Boolean) as Question[];
     /* ── render ─────────────────────────────────────────────────────────── */
     return (
         <div className="qs-page" dir="rtl">
@@ -407,7 +456,9 @@ const QuestionSelector: React.FC<QuestionSelectorProps> = ({
                                 <input type="checkbox" checked={allOnPage} onChange={toggleAll}/>
                                 <span className="qs-select-all__lbl">انتخاب همه صفحه</span>
                             </label>
-                            <span className="qs-result-count">{filtered.length} سوال</span>
+                            <span className="qs-result-count">
+    {total} سوال
+</span>
                         </div>
                         <div className="qs-list-toolbar__right">
                             <select className="qs-sort" value={sortBy}
@@ -653,22 +704,43 @@ const QuestionSelector: React.FC<QuestionSelectorProps> = ({
                     </div>
 
                     {/* pagination */}
-                    {totalPages > 1 && (
+                    {pages > 1 && (
                         <div className="qs-pager">
-              <span className="qs-pager__info">
-                نمایش {(page - 1) * PER_PAGE + 1} تا {Math.min(page * PER_PAGE, filtered.length)} از {filtered.length}
-              </span>
+
+        <span className="qs-pager__info">
+            صفحه {page} از {pages}
+        </span>
+
                             <div className="qs-pager__btns">
-                                <button className="qs-pg" disabled={page === 1} onClick={() => setPage(p => p - 1)}>«
+
+                                <button
+                                    className="qs-pg"
+                                    disabled={page === 1}
+                                    onClick={() => setPage(prev => prev - 1)}
+                                >
+                                    «
                                 </button>
-                                {Array.from({length: totalPages}, (_, i) => i + 1).map(p => (
-                                    <button key={p} className={`qs-pg ${p === page ? "qs-pg--on" : ""}`}
-                                            onClick={() => setPage(p)}>{p}</button>
+
+                                {Array.from({length: pages}, (_, i) => i + 1).map(p => (
+                                    <button
+                                        key={p}
+                                        className={`qs-pg ${page === p ? "qs-pg--on" : ""}`}
+                                        onClick={() => setPage(p)}
+                                    >
+                                        {p}
+                                    </button>
                                 ))}
-                                <button className="qs-pg" disabled={page === totalPages}
-                                        onClick={() => setPage(p => p + 1)}>»
+
+                                <button
+                                    className="qs-pg"
+                                    disabled={page === pages}
+                                    onClick={() => setPage(prev => prev + 1)}
+                                >
+                                    »
                                 </button>
+
                             </div>
+
                         </div>
                     )}
                 </main>
@@ -838,6 +910,7 @@ const QuestionSelector: React.FC<QuestionSelectorProps> = ({
                     </div>
                 </aside>
             </div>
+            {toast && <div className="error-landing-toast">{Err}</div>}
         </div>
     )
         ;

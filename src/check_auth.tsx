@@ -13,14 +13,10 @@ export const CheckAuth = async () => {
     }
 };
 
-export const revoke = () =>{
-    Axios.post('http://localhost:8000/revoke',{},{withCredentials:true})
-        .then((res)=>{})
-        .catch((err)=>{})
-}
-
-export const Logout = () => {
-    Axios.post('http://localhost:8000/logout', {}, {withCredentials:true})
-        .then((res) => {})
-        .catch((err) => {})
-}
+export const revoke = async () => {
+    return Axios.post(
+        'http://localhost:8000/revoke',
+        {},
+        { withCredentials: true }
+    );
+};

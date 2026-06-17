@@ -146,18 +146,18 @@ export const ProfileSection: React.FC = () => {
                 <div className="profile-side">
                     <div className="profile-side__hero">
                         <div className="profile-avatar">👨‍🏫</div>
-                        <div className="profile-side__name">دکتر محمد رضایی</div>
-                        <div className="profile-side__role">استاد ریاضی و فیزیک</div>
+                        <div className="profile-side__name">{userInfo.name} {userInfo.last_name}</div>
+                        {/*<div className="profile-side__role">استاد ریاضی و فیزیک</div>*/}
                     </div>
-                    <div className="profile-complete">
-                        <div className="profile-complete__labels">
-                            <span>تکمیل پروفایل</span>
-                            <span style={{color: "var(--primary)", fontWeight: 800}}>{completion}٪</span>
-                        </div>
-                        <div className="profile-complete__track">
-                            <div className="profile-complete__fill" style={{width: `${completion}%`}}/>
-                        </div>
-                    </div>
+                    {/*<div className="profile-complete">*/}
+                        {/*<div className="profile-complete__labels">*/}
+                        {/*    <span>تکمیل پروفایل</span>*/}
+                        {/*    <span style={{color: "var(--primary)", fontWeight: 800}}>{completion}٪</span>*/}
+                        {/*</div>*/}
+                        {/*<div className="profile-complete__track">*/}
+                        {/*    <div className="profile-complete__fill" style={{width: `${completion}%`}}/>*/}
+                        {/*</div>*/}
+                    {/*</div>*/}
                     <div className="profile-side__links">
                         {([
                             ["personal", "اطلاعات شخصی", "👤"],

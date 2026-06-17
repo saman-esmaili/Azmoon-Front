@@ -1,23 +1,29 @@
 import {useEffect, useState} from "react";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import "../styles/azmon_landing.css";
-import {CheckAuth, Logout} from '../check_auth'
+import {CheckAuth, revoke} from '../check_auth'
+import { HiOutlineShoppingCart } from "react-icons/hi";
 
 export const Nav: React.FC = () => {
         const [scrolled, setScrolled] = useState(false);
         const [mobileOpen, setMobileOpen] = useState(false);
         const [loggedIn, setLoggedIn] = useState(false);
         const navigate = useNavigate();
-        // const handleAuthCheck = async () => {
-        //     const result = await CheckAuth();
-        //     if (result) {
-        //         setLoggedIn(true)
-        //     }
-        // };
-        //
-        // useEffect(() => {
-        //     handleAuthCheck()
-        // }, [])
+        const ShoppingCartIcon = HiOutlineShoppingCart as React.FC<{ size?: number; className?: string }>;
+
+        const handleAuthCheck = async () => {
+            const result = await CheckAuth();
+            setLoggedIn(!!result)
+        };
+
+        useEffect(() => {
+            handleAuthCheck()
+        }, [])
+
+        const handleLogout = async () => {
+            await revoke();
+            setLoggedIn(false);
+        }
 
         useEffect(() => {
             const h = () => setScrolled(window.scrollY > 30);
@@ -89,12 +95,14 @@ export const Nav: React.FC = () => {
                                 <button className="btn-login">ورود</button>
                             </Link>
                         ) : (
-                            <button onClick={Logout} className="btn-login">خروج</button>
+                            <button onClick={handleLogout} className="btn-login">خروج</button>
                         )
                         }
 
 
-                        <button className="btn-demo">دموی رایگان ✦</button>
+                        <button className="btn-demo" onClick={()=>{navigate('/cart')}}>
+                            <ShoppingCartIcon size={24} />
+                        </button>
 
 
                         <button

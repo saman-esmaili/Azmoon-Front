@@ -18,7 +18,7 @@ const AzmoonPage: React.FC = () => (
       ::placeholder { color:#A8A29E !important; }
     `}</style>
     <Hero />
-    <TrustSection />
+    {/*<TrustSection />*/}
     <Features />
     <HowItWorks />
     <Pricing />

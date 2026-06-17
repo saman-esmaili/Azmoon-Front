@@ -20,8 +20,6 @@ function App() {
             <Routes>
                 <Route element={<Layout/>}>
                     <Route path="/" element={<AzmoonPage/>}/>
-                    {/*<Route path="/auth/:Admin" element={<AuthPage/>}/>*/}
-                    {/*<Route path="/auth/:classUrl" element={<AuthPage/>}/>*/}
                     <Route path="/auth" element={<AuthPage/>}/>
                     <Route path="/about" element={<AboutPage/>}/>
                     <Route path="/exam/grading/:examId" element={<ExamGrading/>}/>
