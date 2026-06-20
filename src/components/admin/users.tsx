@@ -16,7 +16,7 @@ interface User {
     plan: null | string;
     type: UserType;
     email: null | string;
-    plan_count:number;
+    plan_count: number;
 }
 
 export const UsersSection: React.FC = () => {
@@ -24,16 +24,17 @@ export const UsersSection: React.FC = () => {
     const [filter, setFilter] = useState("all");
     const [drawer, setDrawer] = useState<User | null>(null);
     const [USERS, setUsers] = useState<User[]>([]);
+    const [searchText, setSearchText] = useState("");
+    const [page, setPage] = useState(1);
+    const [pages, setPages] = useState(1);
     const [examCount, setExamCount] = useState(0);
     const navigate = useNavigate();
 
     const get_users = () => {
-        Axios.get('http://localhost:8000/admin/users', {withCredentials: true})
+        Axios.get(`http://localhost:8000/admin/users?size=10&page=${page}&search=${search}`, {withCredentials: true})
             .then((res) => {
                 setUsers(res.data.users);
                 setExamCount(res.data.exam)
-                console.log(USERS);
-                console.log(examCount);
             }).catch(async (err) => {
             if (err.response.status === 401) {
                 const is_successful = await CheckAuth();
@@ -46,13 +47,16 @@ export const UsersSection: React.FC = () => {
         })
     }
     useEffect(() => {
+        const timer = setTimeout(() => {
+            setSearch(searchText);
+            setPage(1);
+        }, 800);
+
+        return () => clearTimeout(timer);
+    }, [searchText]);
+    useEffect(() => {
         get_users()
-    }, []);
-    const filtered = USERS.filter((u) => {
-        const matchSearch = u.name?.includes(search) || u.mobile.includes(search);
-        const matchFilter = filter === "all" || u.type === filter;
-        return matchSearch && matchFilter;
-    });
+    }, [page, search]);
 
     return (
         <>
@@ -63,7 +67,6 @@ export const UsersSection: React.FC = () => {
                         icon: "👥",
                         label: "کل کاربران",
                         value: USERS.length,
-                        change: "+۲ این ماه",
                         up: true,
                         bg: "var(--primary-lt)",
                         color: "var(--primary)"
@@ -72,7 +75,6 @@ export const UsersSection: React.FC = () => {
                         icon: "✅",
                         label: "دانش آموز",
                         value: USERS.filter(u => u.type === "student").length,
-                        change: "۶۶٪ از کل",
                         up: true,
                         bg: "var(--green-lt)",
                         color: "var(--green)"
@@ -81,7 +83,6 @@ export const UsersSection: React.FC = () => {
                         icon: "⏳",
                         label: "مدرس",
                         value: USERS.filter(u => u.type === "teacher").length,
-                        change: "نیاز به تأیید",
                         up: false,
                         bg: "#FEF3C7",
                         color: "#92400E"
@@ -90,7 +91,6 @@ export const UsersSection: React.FC = () => {
                         icon: "📊",
                         label: "مجموع آزمون",
                         value: examCount,
-                        // change: "+۴۷ این هفته",
                         up: true,
                         bg: "var(--sky-lt)",
                         color: "var(--sky)"
@@ -101,8 +101,8 @@ export const UsersSection: React.FC = () => {
                         <div>
                             <div className="adm-stat-card__label">{s.label}</div>
                             <div className="adm-stat-card__value">{s.value}</div>
-                            <div
-                                className={`adm-stat-card__change ${s.up ? "adm-stat-card__change--up" : "adm-stat-card__change--down"}`}>{s.change}</div>
+                            {/*<div*/}
+                            {/*    className={`adm-stat-card__change ${s.up ? "adm-stat-card__change--up" : "adm-stat-card__change--down"}`}>{s.change}</div>*/}
                         </div>
                     </div>
                 ))}
@@ -113,18 +113,18 @@ export const UsersSection: React.FC = () => {
                 <div className="adm-card__header">
                     <div>
                         <div className="adm-card__title">لیست کاربران</div>
-                        <div className="adm-card__sub">{filtered.length} کاربر</div>
+                        {/*<div className="adm-card__sub">{USERS.length} کاربر</div>*/}
                     </div>
                     <div className="adm-section-header__right">
                         <div className="users-filters">
                             <input className="adm-input" style={{width: 200}} placeholder="🔍 جستجو..." value={search}
                                    onChange={(e) => setSearch(e.target.value)}/>
-                            <select className="adm-select" value={filter} onChange={(e) => setFilter(e.target.value)}>
-                                <option value="all">همه کاربران</option>
-                                <option value="teacher">مدرس</option>
-                                <option value="student">دانش آموز</option>
-                                <option value="admin">ادمین</option>
-                            </select>
+                            {/*<select className="adm-select" value={filter} onChange={(e) => setFilter(e.target.value)}>*/}
+                            {/*    <option value="all">همه کاربران</option>*/}
+                            {/*    <option value="teacher">مدرس</option>*/}
+                            {/*    <option value="student">دانش آموز</option>*/}
+                            {/*    <option value="admin">ادمین</option>*/}
+                            {/*</select>*/}
                         </div>
                         {/*<button className="adm-btn adm-btn--primary">+ کاربر جدید</button>*/}
                     </div>
@@ -143,7 +143,7 @@ export const UsersSection: React.FC = () => {
                         </tr>
                         </thead>
                         <tbody>
-                        {filtered.map((u) => {
+                        {USERS.map((u) => {
                             const badge = userStatusBadge(u.type);
                             return (
                                 <tr key={u.id}>
@@ -177,15 +177,29 @@ export const UsersSection: React.FC = () => {
                         })}
                         </tbody>
                     </table>
-                </div>
-                <div className="adm-pagination">
-                    <span className="adm-pagination__info">نمایش ۱ تا {filtered.length} از {USERS.length}</span>
-                    <div className="adm-pagination__btns">
-                        {["«", "۱", "۲", "»"].map((p) => (
-                            <button key={p}
-                                    className={`adm-page-btn ${p === "۱" ? "adm-page-btn--active" : ""}`}>{p}</button>
-                        ))}
-                    </div>
+                    {USERS.length > 6 && (<div className="tch-pagination">
+                        <div className="tch-pagination__btns">
+                            <button
+                                disabled={page === 1}
+                                onClick={() => setPage(p => p - 1)}
+                                className={'tch-page-btn'}
+                            >
+                                «
+                            </button>
+
+                            <span className={'tch-pagination__info'}>
+        صفحه {page} از {pages}
+    </span>
+
+                            <button
+                                disabled={page === pages}
+                                className={'tch-page-btn'}
+                                onClick={() => setPage(p => p + 1)}
+                            >
+                                »
+                            </button>
+                        </div>
+                    </div>)}
                 </div>
             </div>
 

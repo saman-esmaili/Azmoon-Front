@@ -5,7 +5,9 @@ import {diffLabel} from "../teacher/types";
 import Axios from "axios";
 import {CheckAuth, revoke} from "../../check_auth";
 import {useNavigate} from "react-router-dom";
+
 type diffType = 'easy' | 'medium' | 'hard';
+
 interface QuestionData {
     id: number;
     text: string;
@@ -35,12 +37,16 @@ interface QuestionHeaderData {
 export const QuestionsSection: React.FC = () => {
     const [search, setSearch] = useState("");
     const [QUESTIONS, setQuestion] = useState<QuestionData[]>([])
-    const filtered = QUESTIONS.filter((q) => q.text.includes(search) || q.cat.includes(search));
+    const [page, setPage] = useState(1);
+    const [pages, setPages] = useState(1);
+    const [searchText, setSearchText] = useState("");
+    // const filtered = QUESTIONS.filter((q) => q.text.includes(search) || q.cat.includes(search));
     const navigate = useNavigate();
     const get_questions = () => {
-        Axios.get('http://localhost:8000/admin/questions', {withCredentials: true})
+        Axios.get(`http://localhost:8000/admin/questions?size=10&page=${page}&search=${search}`, {withCredentials: true})
             .then((res) => {
                 setQuestion(res.data.result);
+                setPages(res.data.pages)
             })
             .catch(async (err) => {
                 if (err.response.status === 401) {
@@ -54,8 +60,16 @@ export const QuestionsSection: React.FC = () => {
             })
     }
     useEffect(() => {
+        const timer = setTimeout(() => {
+            setSearch(searchText);
+            setPage(1);
+        }, 800);
+
+        return () => clearTimeout(timer);
+    }, [searchText]);
+    useEffect(() => {
         get_questions()
-    }, []);
+    }, [page, search]);
     const LETTERS = ["A", "B", "C", "D"];
 
     return (
@@ -84,7 +98,7 @@ export const QuestionsSection: React.FC = () => {
                         icon: "✍️",
                         label: "تشریحی/کوتاه",
                         value: `${QUESTIONS.filter(q => q.type === "test").length}`,
-                        change: `${QUESTIONS.filter(q => q.type === "test").length / QUESTIONS.length * 100}٪ از کل`,
+                        change: `${Math.round(QUESTIONS.filter(q => q.type === "test").length / QUESTIONS.length * 100)}٪ از کل`,
                         up: true,
                         bg: "var(--accent-lt)",
                         color: "var(--accent)"
@@ -93,7 +107,7 @@ export const QuestionsSection: React.FC = () => {
                         icon: "🎯",
                         label: "صحیح/غلط",
                         value: `${QUESTIONS.filter(q => q.type === "true_false").length}`,
-                        change: `${QUESTIONS.filter(q => q.type === "true_false").length / QUESTIONS.length * 100}٪ از کل`,
+                        change: `${Math.round(QUESTIONS.filter(q => q.type === "true_false").length / QUESTIONS.length * 100)}٪ از کل`,
                         up: true,
                         bg: "var(--green-lt)",
                         color: "var(--green)"
@@ -113,7 +127,7 @@ export const QuestionsSection: React.FC = () => {
             <div className="adm-section-header">
                 <div className="adm-section-header__left">
                     <div className="adm-section-title">بانک سوالات</div>
-                    <div className="adm-section-sub">{filtered.length} سوال</div>
+                    <div className="adm-section-sub">{QUESTIONS.length} سوال</div>
                 </div>
                 <div className="adm-section-header__right">
                     <input className="adm-input" style={{width: 220}} placeholder="🔍 جستجو در سوالات..." value={search}
@@ -121,7 +135,7 @@ export const QuestionsSection: React.FC = () => {
                 </div>
             </div>
 
-            {filtered.map(q => (
+            {QUESTIONS.map(q => (
                 <div key={q.id} className="q-card">
                     <div className="q-card__top">
                         {q.text && <div className="q-card__text">{q.text}</div>}
@@ -244,6 +258,29 @@ export const QuestionsSection: React.FC = () => {
                     )}
                 </div>
             ))}
+            <div className="tch-pagination">
+                <div className="tch-pagination__btns">
+                    <button
+                        disabled={page === 1}
+                        onClick={() => setPage(p => p - 1)}
+                        className={'tch-page-btn'}
+                    >
+                        «
+                    </button>
+
+                    <span className={'tch-pagination__info'}>
+        صفحه {page} از {pages}
+    </span>
+
+                    <button
+                        disabled={page === pages}
+                        className={'tch-page-btn'}
+                        onClick={() => setPage(p => p + 1)}
+                    >
+                        »
+                    </button>
+                </div>
+            </div>
         </>
     );
 };

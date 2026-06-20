@@ -186,7 +186,7 @@ const TeacherPanel: React.FC = () => {
                     {/*</button>*/}
                     <button
                         className="tch-icon-btn"
-                        onClick={() => handleLogout}
+                        onClick={() => handleLogout()}
                     >
                         <LogOut size={20}/>
                     </button>

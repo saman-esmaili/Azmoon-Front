@@ -6,6 +6,9 @@ import {PaymentsSection} from "../components/admin/payments";
 import {QuestionsSection} from "../components/admin/question";
 import {MessagesSection} from "../components/admin/message";
 import {NAV_ITEMS, SECTION_TITLES} from "../components/admin/sidebar";
+import {LogOut} from "lucide-react";
+import {useNavigate} from "react-router-dom";
+import {revoke} from "../check_auth";
 
 const AdminPanel: React.FC = () => {
     const [active, setActive] = useState<Section>("users");
@@ -33,29 +36,29 @@ const AdminPanel: React.FC = () => {
         setActive(id);
         setMobileOpen(false); // در موبایل بسته شود
     };
-
+    const navigate = useNavigate()
+    const handleLogout = async () => {
+        await revoke();
+        navigate('/');
+    }
     return (
         <div className="adm-shell" dir="rtl">
 
             {/* Overlay موبایل */}
             {mobileOpen && (
                 <div
-                    className="adm-overlay"
+                    className="tch-sidebar-overlay"
                     onClick={() => setMobileOpen(false)}
                 />
             )}
 
+
             {/* ── Sidebar ── */}
             <aside
-                className={`adm-sidebar
-          ${collapsed ? "adm-sidebar--collapsed" : ""}
-          ${mobileOpen ? "adm-sidebar--open" : ""}`}
+                className={`tch-sidebar 
+        ${collapsed ? "tch-sidebar--collapsed" : ""} 
+        ${mobileOpen ? "tch-sidebar--open" : ""}`}
             >
-                {/* Header موبایل */}
-                <div className="adm-sidebar__mobile-header">
-                    <span>منو</span>
-                    <button onClick={() => setMobileOpen(false)}>✕</button>
-                </div>
 
                 {/* Brand */}
                 <div className="adm-sidebar__brand">
@@ -63,7 +66,7 @@ const AdminPanel: React.FC = () => {
                     {!collapsed && (
                         <>
                             <span className="adm-sidebar__brand-name">آزمون‌گیر</span>
-                            <span className="adm-sidebar__brand-badge">Admin</span>
+                            <span className="adm-sidebar__brand-badge">ادمین</span>
                         </>
                     )}
                 </div>
@@ -177,17 +180,12 @@ const AdminPanel: React.FC = () => {
                 </div>
 
                 <div className="adm-topbar__right">
-                    {/*<div className="adm-topbar__search">*/}
-                    {/*    <span className="adm-topbar__search-icon">🔍</span>*/}
-                    {/*    <input placeholder="جستجوی سریع..."/>*/}
-                    {/*</div>*/}
-
-                    <button className="adm-icon-btn">
-                        🔔
-                        <span className="adm-icon-btn__dot"/>
+                    <button
+                        className="tch-icon-btn"
+                        onClick={() => handleLogout()}
+                    >
+                        <LogOut size={20}/>
                     </button>
-
-                    <button className="adm-icon-btn">⚙️</button>
                 </div>
             </header>
 

@@ -17,7 +17,15 @@ export const PanelLeft: React.FC = () => {
     const [otpError, setOtpError] = useState<string>("");
     const navigate = useNavigate()
     const [searchParams] = useSearchParams();
-
+    const check = async () =>{
+        const is_auth = await CheckAuth()
+        if (is_auth) {
+            navigate('/')
+        }
+    }
+    useEffect(() => {
+        check()
+    }, []);
     const admin = searchParams.get('Admin');
     const classUrl = searchParams.get('class_url');
 

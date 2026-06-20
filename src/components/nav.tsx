@@ -1,8 +1,9 @@
-import {useEffect, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import "../styles/azmon_landing.css";
 import {CheckAuth, revoke} from '../check_auth'
-import { HiOutlineShoppingCart } from "react-icons/hi";
+import {HiOutlineShoppingCart} from "react-icons/hi";
+import Axios from "axios";
 
 export const Nav: React.FC = () => {
         const [scrolled, setScrolled] = useState(false);
@@ -19,6 +20,18 @@ export const Nav: React.FC = () => {
         useEffect(() => {
             handleAuthCheck()
         }, [])
+        const [student, setStudent] = useState();
+        const [teacher, setTeacher] = useState();
+        const get_types = () => {
+            Axios.get('http://localhost:8000/types', {withCredentials: true})
+                .then((res) => {
+                    setStudent(res.data.student);
+                    setTeacher(res.data.Teacher);
+                })
+        }
+        useEffect(() => {
+            get_types()
+        }, []);
 
         const handleLogout = async () => {
             await revoke();
@@ -31,14 +44,23 @@ export const Nav: React.FC = () => {
             return () => window.removeEventListener("scroll", h);
         }, []);
 
-        const links = [
+        const baseLinks = [
             {label: "خانه", path: "/"},
             {label: "ویژگی‌ها", sectionId: "features"},
             {label: "نحوه‌کار", sectionId: "methods"},
             {label: "پلن‌ها", sectionId: "plan"},
             {label: "درباره", path: "/about"},
             {label: "تماس باما", path: "/contact"},
+
         ];
+        const links = useMemo(() => {
+            const extra = [];
+
+            if (teacher) extra.push({label: "پنل", path: "/teacher"});
+            else if (student) extra.push({label: "پنل", path: "/student"});
+
+            return [ ...extra, ...baseLinks];
+        }, [teacher, student]);
 
         const location = useLocation();
 
@@ -86,9 +108,23 @@ export const Nav: React.FC = () => {
                                     </Link>
                                 )
                         )}
+                        {mobileOpen && (
+                            <div className="mobile-menu">
+                                <button className='btn-login-mob' onClick={() => navigate('/cart')}>
+                                    <ShoppingCartIcon size={24}/>
+                                </button>
+                                {loggedIn ? (
+                                    <button onClick={handleLogout} className='btn-login-mob'>خروج</button>
+                                ) : (
+                                    <Link to="/auth">ورود</Link>
+                                )}
+
+                            </div>
+                        )}
                     </div>
 
                     {/* Actions */}
+
                     <div className="nav-actions">
                         {!loggedIn ? (
                             <Link to="/auth">
@@ -100,8 +136,10 @@ export const Nav: React.FC = () => {
                         }
 
 
-                        <button className="btn-demo" onClick={()=>{navigate('/cart')}}>
-                            <ShoppingCartIcon size={24} />
+                        <button className="btn-demo" onClick={() => {
+                            navigate('/cart')
+                        }}>
+                            <ShoppingCartIcon size={24}/>
                         </button>
 
 

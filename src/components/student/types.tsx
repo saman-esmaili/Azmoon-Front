@@ -1,6 +1,6 @@
 
 /* ─── Types ─────────────────────────────────────────────────────────── */
-export type Section = "dashboard" | "exams" | "messages" | "profile";
+export type Section = "dashboard" | "exams" | "messages" | "profile" | "join_class";
 export type MailFolder = "inbox" | "sent" | "drafts";
 export type QType = "multiple" | "truefalse" | "descriptive";
 export type QStatus = "unseen" | "answered" | "skipped";

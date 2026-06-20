@@ -30,16 +30,25 @@ export const ExamsSection: React.FC = () => {
     const [scoreModal, setScoreModal] = useState<Score | null>(null);
     const [EXAMS, setExams] = useState<ExamInfo[]>([])
     const [examId, setExamId] = useState(-1)
+    const [page, setPage] = useState(1);
+    const [pages, setPages] = useState(1);
     const [reviewModal, setReviewModal] = useState<{
         exam_id: number;
     } | null>(null);
     const navigate = useNavigate();
+    const [header,setHeader] = useState({
+        avg_score:0,
+        exams:0,
+        passed_exam:0,
+        remain:0,
+    })
     const [tab, setTab] = useState<"پیش رو" | "برگزار شد">("پیش رو");
     const getExams = () => {
-        Axios.get('http://localhost:8000/student/exam', {withCredentials: true})
+        Axios.get(`http://localhost:8000/student/exam?page=${page}&size=10`, {withCredentials: true})
             .then((res) => {
-                console.log(res.data.exam.exams)
                 setExams(res.data.exam.exams)
+                setHeader(res.data.exam.header)
+                setPages(res.data.exam.pages)
             })
             .catch(async (err) => {
                 if (err.response.status === 401) {
@@ -73,7 +82,7 @@ export const ExamsSection: React.FC = () => {
 
     useEffect(() => {
         getExams()
-    }, []);
+    }, [page]);
 
     const get_score = (exam_id: number) => {
         Axios.get(`http://localhost:8000/student/exam/score/${exam_id}`, {withCredentials: true})
@@ -140,7 +149,7 @@ export const ExamsSection: React.FC = () => {
                         bg: "var(--green-lt)",
                         color: "var(--green)"
                     },
-                    {icon: "⭐", label: "میانگین نمره", val: "۱۷.۵", bg: "#FEF3C7", color: "#92400E"},
+                    {icon: "⭐", label: "میانگین نمرات", val: header.avg_score, bg: "#FEF3C7", color: "#92400E"},
                 ].map(s => (
                     <div key={s.label} className="std-stat">
                         <div className="std-stat__icon" style={{background: s.bg}}>{s.icon}</div>
@@ -294,6 +303,30 @@ export const ExamsSection: React.FC = () => {
                     </div>
                 </div>
             )}
+            {EXAMS.length > 10 && (<div className="tch-pagination">
+                <div className="tch-pagination__btns">
+                    <button
+                        disabled={page === 1}
+                        onClick={() => setPage(p => p - 1)}
+                        className={'tch-page-btn'}
+                    >
+                        «
+                    </button>
+
+                    <span className={'tch-pagination__info'}>
+        صفحه {page} از {pages}
+    </span>
+
+                    <button
+                        disabled={page === pages}
+                        className={'tch-page-btn'}
+                        onClick={() => setPage(p => p + 1)}
+                    >
+                        »
+                    </button>
+                </div>
+            </div>)}
+
         </>
     );
 };

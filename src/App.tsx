@@ -13,6 +13,7 @@ import QuestionSelector from "./components/teacher/question-selector";
 import StudentPanel from "./routers/student";
 import {ExamEnv} from "./components/student/azmoon-env";
 import ExamGrading from "./components/teacher/exam-grading";
+import NotFound from "./routers/not-found";
 
 function App() {
     return (
@@ -31,6 +32,7 @@ function App() {
                     <Route path="/teacher" element={<TeacherPanel/>}/>
                     <Route path="/question-selector/:examId" element={<QuestionSelector/>}/>
                     <Route path="/student" element={<StudentPanel/>}/>
+                    <Route path="*" element={<NotFound/>}/>
                 </Route>
             </Routes>
         </Router>

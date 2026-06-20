@@ -2,7 +2,8 @@ import {payStatusBadge} from "./types";
 import '../../styles/admin.css';
 import {useEffect, useState} from "react";
 import Axios from "axios";
-import {CheckAuth} from "../../check_auth";
+import {CheckAuth, revoke} from "../../check_auth";
+import {useNavigate} from "react-router-dom";
 
 interface headerInfo {
     all: number;
@@ -11,6 +12,7 @@ interface headerInfo {
     complete: number;
     month_income: []
 }
+
 type STATUS = "complete" | 'incomplete'
 
 interface paymentsInfo {
@@ -26,6 +28,10 @@ interface paymentsInfo {
 
 export const PaymentsSection: React.FC = () => {
     const [currentMonth, setCurrentMonth] = useState(0);
+    const [page, setPage] = useState(1);
+    const [pages, setPages] = useState(1);
+    const [searchText, setSearchText] = useState("");
+    const [search, setSearch] = useState("");
     const [PAYMENTS, setPayments] = useState<paymentsInfo[]>([])
     const months = [
         "فروردین",
@@ -48,16 +54,41 @@ export const PaymentsSection: React.FC = () => {
         complete: 0,
         month_income: []
     })
+    const navigate = useNavigate()
+    const payment = () => {
+        Axios.get(`http://localhost:8000/admin/payments?size=10&page=${page}&search=${search}`, {withCredentials: true})
+            .then((res) => {
+                setPayments(res.data.transactions);
+                setPages(res.data.pages);
+            }).catch(async (err) => {
+            if (err.response.status === 401) {
+                const is_successful = await CheckAuth();
+                if (is_successful) {
+                    return payment();
+                }
+            }
+            // revoke()
+            // navigate('/auth');
+        })
+    }
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setSearch(searchText);
+            setPage(1);
+        }, 800);
+
+        return () => clearTimeout(timer);
+    }, [searchText]);
+    useEffect(() => {
+        payment()
+    }, [page, search]);
+
     const paymentHeader = () => {
         Axios.get('http://localhost:8000/admin/payments-info', {withCredentials: true})
             .then((res) => {
                 setHeader(res.data.payment_header);
+                console.log(res.data.payment_header)
                 setCurrentMonth(res.data.month_number);
-                setPayments([])
-                if (res.data.transactions){
-                    setPayments(res.data.transactions);
-                }
-
             })
             .catch(async (err) => {
                 if (err.response.status === 401) {
@@ -187,12 +218,13 @@ export const PaymentsSection: React.FC = () => {
                         <div className="adm-card__sub">{PAYMENTS.length} رکورد</div>
                     </div>
                     <div className="adm-section-header__right">
-                        <select className="adm-select">
-                            <option>همه وضعیت‌ها</option>
-                            <option>پرداخت شده</option>
-                            <option>در انتظار</option>
-                            <option>ناموفق</option>
-                        </select>
+                        <input
+                            className="tch-input"
+                            style={{width: 200}}
+                            placeholder="🔍 جستجو..."
+                            value={searchText}
+                            onChange={(e) => setSearchText(e.target.value)}
+                        />
                         <button className="adm-btn adm-btn--ghost">⬇ خروجی Excel</button>
                     </div>
                 </div>
@@ -220,7 +252,7 @@ export const PaymentsSection: React.FC = () => {
                                         color: "var(--adm-light)",
                                         fontFamily: "monospace",
                                         fontSize: 12
-                                    }}>#{p.id}</td>
+                                    }}>#{p.trans_id}</td>
                                     <td><span className="adm-table__name">{p.user_name}</span></td>
                                     <td>{p.plan}</td>
                                     {/*<td><span*/}
@@ -249,15 +281,29 @@ export const PaymentsSection: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
-                <div className="adm-pagination">
-                    <span className="adm-pagination__info">نمایش ۱ تا {PAYMENTS.length}</span>
-                    <div className="adm-pagination__btns">
-                        {["«", "۱", "»"].map((p) => (
-                            <button key={p}
-                                    className={`adm-page-btn ${p === "۱" ? "adm-page-btn--active" : ""}`}>{p}</button>
-                        ))}
+                {PAYMENTS.length > 0 && (<div className="tch-pagination">
+                    <div className="tch-pagination__btns">
+                        <button
+                            disabled={page === 1}
+                            onClick={() => setPage(p => p - 1)}
+                            className={'tch-page-btn'}
+                        >
+                            «
+                        </button>
+
+                        <span className={'tch-pagination__info'}>
+        صفحه {page} از {pages}
+    </span>
+
+                        <button
+                            disabled={page === pages}
+                            className={'tch-page-btn'}
+                            onClick={() => setPage(p => p + 1)}
+                        >
+                            »
+                        </button>
                     </div>
-                </div>
+                </div>)}
             </div>
         </>
     );

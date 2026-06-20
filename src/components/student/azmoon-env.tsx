@@ -10,6 +10,7 @@ export const ExamEnv: React.FC = () => {
     const [questions, setQuestions] = useState<Record<string, [number, number, string]>>({});
     const [topbar, setTopbar] = useState<{ exam_name: string, class_name: string }>({exam_name: '', class_name: ''});
     const [answeredCount, setAnswerCount] = useState(0)
+    const [showNav, setShowNav] = useState(false);
     const [show_question, setShowQuestion] = useState<{
         type: string, question: string, question_image: string, A: string,
         B: string,
@@ -53,7 +54,8 @@ export const ExamEnv: React.FC = () => {
             })
     }
     useEffect(() => {
-        const count = Object.values(questions).filter(q => q[2] !== "").length;
+        // const count = Object.values(questions).filter(q => q[2] !== "").length;
+        const count = Object.values(questions).filter(q => q[2] && q[2] !== '').length;
         setAnswerCount(count);
     }, [questions]);
     useEffect(() => {
@@ -152,6 +154,9 @@ export const ExamEnv: React.FC = () => {
                     <span className="env-timer__val">{fmtTime(timeLeft)}</span>
                 </div>
                 <div className="env-topbar__right">
+                    <button className="env-nav-toggle-btn" onClick={() => setShowNav(true)}>
+                        📋 سوالات
+                    </button>
                     <button className="std-btn std-btn--rose" onClick={() => setConfirmEnd(true)}>پایان آزمون</button>
                 </div>
             </div>
@@ -285,9 +290,9 @@ export const ExamEnv: React.FC = () => {
                 </div>
 
                 {/* right: question nav panel */}
-                <div className="env-nav-panel">
+                <div className={`env-nav-panel ${showNav ? "env-nav-panel--open" : ""}`}>
                     <div className="env-nav-panel__header">
-                        <div className="env-nav-panel__title">راهنمای سوالات</div>
+                        <div className="env-nav-panel__title">راهنمای سوالات <button className="env-nav-panel__close" onClick={() => setShowNav(false)}>×</button></div>
                         <div className="env-nav-legend">
                             {([["env-nav-dot--answered", "پاسخ داده"], ["env-nav-dot--skipped", "رد شده"], ["env-nav-dot--unseen", "پاسخ نداده"], ["env-nav-dot--current", "جاری"]] as [string, string][]).map(([cls, lbl]) => (
                                 <div key={lbl} className="env-nav-legend-item">
@@ -317,7 +322,7 @@ export const ExamEnv: React.FC = () => {
                                                 ? "env-q-btn--answered"
                                                 : "env-q-btn--unseen"
                                     }`}
-                                    onClick={() => go(i)}
+                                    onClick={() => { go(i); setShowNav(false); }}
                                 >
                                     {i + 1}
                                 </button>
@@ -366,6 +371,7 @@ export const ExamEnv: React.FC = () => {
                     </div>
                 </div>
             )}
+            {showNav && <div className="env-nav-backdrop" onClick={() => setShowNav(false)} />}
         </div>
     );
 };
